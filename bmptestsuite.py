@@ -88,7 +88,7 @@ class bitmap :
         sizeof_fileinfoheader   = self.SIZEOF_FILEINFOHEADER
         sizeof_bitmapinfoheader = self.get_bitmap_info_header_size()
         sizeof_palette          = len(self.get_palette())
-        sizeof_bitmapdata       = self.get_image_size()
+        sizeof_bitmapdata       = len(self.get_bitmapdata())
 
         return sizeof_fileinfoheader + sizeof_bitmapinfoheader + sizeof_palette + sizeof_bitmapdata
 
@@ -435,6 +435,17 @@ class bitmap_24bpp(bitmap) :
         return bitmapdata
 
 
+class bitmap_24bpp_zeroimagesize(bitmap_24bpp) :
+    """
+    An uncompressed RGB bitmaps that has 24 bits-per-pixel.
+    The bitmap has a biSizeImage field of 0.
+    The bitmap specification allows the biSizeImage field to be zero
+    for uncompressed images.
+    """
+
+    def get_image_size(self) :
+        "Return the biSizeImage to put into the BITMAPINFOHEADER"
+        return 0
 
 
 class bitmap_555(bitmap) :
@@ -2217,6 +2228,15 @@ def generate_valid_bitmaps() :
         bitmap_8bpp(1, 1),
         'The image is a single blue pixel.')
 
+    log.do_testcase(
+        'rle8-64000x1.bmp',
+        bitmap_rle8_encoded(64000, 1),
+        'The image is a very long red, green, and blue horizontal line.')
+
+    log.do_testcase(
+        '8bpp-1x64000.bmp',
+        bitmap_8bpp(1, 64000),
+        'The image is a very long, blue vertical line.')
 
     # valid 5-5-5 bitmaps
     for width in range(320,322) :
@@ -2269,6 +2289,10 @@ def generate_valid_bitmaps() :
         'misleadingextension.jpg',
         bitmap_24bpp(320, 240),
         'The filename has a "jpg" file extension.  This tests that the renderer examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
+
+    log.do_testcase(
+        '24bpp-imagesize-zero.bmp',
+        bitmap_24bpp_zeroimagesize(320, 240))
 
 
     # valid 32 bpp bitmaps

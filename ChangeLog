@@ -1,3 +1,8 @@
+2005-04-29 David Costanzo <david_costanzo@yahoo.com>
+  * Add a 64000x1 image.
+  * Add a 1x64000 image.
+  * Add an uncompressed image with an ImageSize of 0.
+	
 2005-04-28 David Costanzo <david_costanzo@yahoo.com>
   * Create initial public release 0.7.
     This includes a representitive set of version 3 bitmaps.
