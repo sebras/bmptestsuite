@@ -1,0 +1,45 @@
+The Bitmap Test Suite 0.7
+-------------------------
+
+This project aims to produce a set of test bitmaps that are designed to 
+test the boundary conditions of bitmap processing software.
+
+It includes bitmaps of all legal bit depths, both uncompressed RGB 
+and RLE compressed bitmaps, and various widths (to test padding).
+
+It also includes an extensive set of unconventional, malformed,
+and even malicious bitmaps.
+
+At this time, it does NOT include any JPEG or PNG compressed bitmaps.
+
+Organization
+============
+The bitmaps are put into two directories: valid and invalid.
+
+The "valid" directory contains bitmap files that all conforming bitmap
+processors should be able to process.
+
+The "invalid" directory contains questionable, malformed, or even
+malicious bitmaps.  A conforming bitmap processor does not need to
+be able to process any of these file, but it should not crash or
+leak memory.  A superior bitmap processor will either process these
+bitmaps in spite of their flaws or display an informative, accurate
+diagnostic if it cannot.
+
+Both directories contain an "index.html" file, which is an HTML
+page that describes the purpose of each file.
+
+
+Web Resources
+=============
+The project status, as well as the latest version of the bitmap test
+suite, is available online at SourceForge:
+
+  http://bitmaptestsuite.sourceforge.net
+
+
+Copyrights
+==========
+The Bitmap Test Suite has been dedicated into the public domain.
+I did this (instead of licensing it under the BSD or GPL) because I
+didn't want any legal concerns to inhibit the testing of software.
