@@ -161,11 +161,11 @@ class bitmap :
 
     def get_pixels_per_meter_x(self) :
         "Return the biXPelsPerMeter to put into the BITMAPINFOHEADER"
-        return 0
+        return 1000
 
     def get_pixels_per_meter_y(self) :
         "Return the biYPelsPerMeter to put into the BITMAPINFOHEADER"
-        return 0
+        return 1000
 
     def get_colors_used(self) :
         "Return the biClrUsed to put into the BITMAPINFOHEADER"
@@ -187,7 +187,7 @@ class bitmap :
         bits_per_pixel     = self.get_bits_per_pixel()
         compression        = self.get_compression()
         image_size         = self.get_image_size()
-        pixels_per_meter_x = self.get_pixels_per_meter_y()
+        pixels_per_meter_x = self.get_pixels_per_meter_x()
         pixels_per_meter_y = self.get_pixels_per_meter_y()
         colors_used        = self.get_colors_used()
         colors_important   = self.get_colors_important()
@@ -2075,12 +2075,80 @@ class bitmap_4bpp_rle8compression(bitmap_rle4_encoded) :
 
 class bitmap_8bpp_rle4compression(bitmap_rle8_encoded) :
     """
-    A 8 bpp bitmap with a 'biCompresion' field of BI_RLE4.
+    An 8 bpp bitmap with a 'biCompresion' field of BI_RLE4.
     Only 4 bpp bitmaps may use BI_RLE4.
     """
 
     def get_compression(self) :
         return self.BI_RLE4
+
+class bitmap_8bpp_zeroxpelspermeter(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a 'biXPelsPerMeter' field of 0.
+    Most renderers ignore this field, but it is most likely used when
+    printing the image.
+    """
+
+    def get_pixels_per_meter_x(self) :
+        "Return the biXPelsPerMeter to put into the BITMAPINFOHEADER"
+        return 0
+
+class bitmap_8bpp_negativexpelspermeter(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a negative 'biXPelsPerMeter' field.
+    Most renderers ignore this field, but it is most likely used when
+    printing the image.
+    """
+
+    def get_pixels_per_meter_x(self) :
+        "Return the biXPelsPerMeter to put into the BITMAPINFOHEADER"
+        return -10000
+
+class bitmap_8bpp_largexpelspermeter(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a large 'biXPelsPerMeter' field.
+    Most renderers ignore this field, but it is most likely used when
+    printing the image.
+    """
+
+    def get_pixels_per_meter_x(self) :
+        "Return the biXPelsPerMeter to put into the BITMAPINFOHEADER"
+        return sys.maxint
+
+
+class bitmap_8bpp_zeroypelspermeter(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a 'biYPelsPerMeter' field of 0.
+    Most renderers ignore this field, but it is most likely used when
+    printing the image.
+    """
+
+    def get_pixels_per_meter_y(self) :
+        "Return the biYPelsPerMeter to put into the BITMAPINFOHEADER"
+        return 0
+
+class bitmap_8bpp_negativeypelspermeter(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a negative 'biYPelsPerMeter' field.
+    Most renderers ignore this field, but it is most likely used when
+    printing the image.
+    """
+
+    def get_pixels_per_meter_y(self) :
+        "Return the biYPelsPerMeter to put into the BITMAPINFOHEADER"
+        return -10000
+
+class bitmap_8bpp_largeypelspermeter(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a large 'biYPelsPerMeter' field.
+    Most renderers ignore this field, but it is most likely used when
+    printing the image.
+    """
+
+    def get_pixels_per_meter_y(self) :
+        "Return the biYPelsPerMeter to put into the BITMAPINFOHEADER"
+        return sys.maxint
+
 
 class bitmap_toomuchdata(bitmap_1bpp) :
     """
@@ -2438,6 +2506,30 @@ def generate_invalid_bitmaps() :
     log.do_testcase(
         'compression-bad-rle8-for-4bpp.bmp',
         bitmap_8bpp_rle4compression(320, 240))
+    
+    log.do_testcase(
+        'pels-per-meter-x-zero.bmp',
+        bitmap_8bpp_zeroxpelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-x-negative.bmp',
+        bitmap_8bpp_negativexpelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-x-large.bmp',
+        bitmap_8bpp_largexpelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-y-zero.bmp',
+        bitmap_8bpp_zeroypelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-y-negative.bmp',
+        bitmap_8bpp_negativeypelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-y-large.bmp',
+        bitmap_8bpp_largeypelspermeter(320, 240))
 
     log.do_testcase(
         'width-times-height-overflow.bmp',

@@ -1,3 +1,7 @@
+2005-04-31 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Add bitmaps for various "pels per meter" values.
+	
 2005-04-30 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add a bitmap whose filename has spaces in it.
