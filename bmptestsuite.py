@@ -341,7 +341,7 @@ class bitmap :
 
 
 class bitmap_32bpp(bitmap) :
-    "A bitmap that is 32 bpp uncompressed RGB"
+    "A bitmap that is 32 bpp uncompressed RGB."
 
     def __init__(self, width, height) :
         bitmap.__init__(self, 32, width, height)
@@ -435,6 +435,65 @@ class bitmap_32bpp_888_colortable(bitmap_32bpp) :
         "Return the biCompression to put into the BITMAPINFOHEADER"
         # must be BI_BITFIELDS because we have color masks
         return self.BI_BITFIELDS
+
+class bitmap_32bpp_101110(bitmap) :
+    """
+    A bitmap that is 32 bpp uncompressed RGB.
+    This bitmap uses 10-11-10 RGB color masks.
+    """
+
+    def __init__(self, width, height) :
+        bitmap.__init__(self, 32, width, height)
+
+        self.palette = [
+            0x7FE00000, # red mask   (10 bits)
+            0x001FFC00, # green mask (11 bits)
+            0x000003FF] # blue mask  (10 bits)
+
+    def get_compression(self) :
+        "Return the biCompression to put into the BITMAPINFOHEADER"
+        return self.BI_BITFIELDS
+
+    def get_colors_used(self) :
+        "Return the biClrUsed to put into the BITMAPINFOHEADER"
+        return 0
+
+    def create_bitmapdata(self) :
+        "Return the bitmap data as uncompressed 32 bpp RGB"
+
+        red_width    = self.width / 3
+        green_width  = self.width / 3
+        blue_width   = self.width - (red_width + green_width)
+
+        # draw the color pattern
+        raster = []
+        for i in range(0, self.height) :
+
+            row = []
+            row += [struct.pack('<I', 0x7FE00000)] * red_width
+            row += [struct.pack('<I', 0x001FFC00)] * green_width
+            row += [struct.pack('<I', 0x000003FF)] * blue_width
+
+            raster.append(row)
+
+        # draw a border
+        self.draw_double_border(
+            raster,
+            struct.pack('<I', 0x00000000),
+            struct.pack('<I', 0x7FFFFFFF))
+
+        # add in the TOP_LEFT_LOGO
+        self.apply_top_left_logo(
+            raster,
+            struct.pack('<I', 0x00000000),
+            struct.pack('<I', 0x7FFFFFFF))
+
+        # concatenate the rows in the raster image into a flat buffer
+        bitmapdata = ''
+        for row in raster :
+            bitmapdata += string.join(row, '')
+
+        return bitmapdata
 
 
 class bitmap_24bpp(bitmap) :
@@ -568,10 +627,6 @@ class bitmap_565(bitmap) :
 
     def get_colors_used(self) :
         "Return the biClrUsed to put into the BITMAPINFOHEADER"
-        return 0
-
-    def get_colors_important(self) :
-        "Return the biClrImportant to put into the BITMAPINFOHEADER"
         return 0
 
     def create_bitmapdata(self) :
@@ -2505,6 +2560,10 @@ def generate_valid_bitmaps() :
     log.do_testcase(
         '32bpp-888-optimalpalette-320x240.bmp',
         bitmap_32bpp_888_colortable(320, 240))
+
+    log.do_testcase(
+        '32bpp-101110-320x240.bmp',
+        bitmap_32bpp_101110(320, 240))
 
     log.do_testcase(
         '32bpp-1x1.bmp',
