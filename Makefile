@@ -5,7 +5,7 @@ TAR=tar
 ZIP=zip -r -q -9 -X
 TOUCH=touch
 
-VERSION=0.7
+VERSION=0.7+
 
 RELEASE_NAME        = bmptestsuite-$(VERSION)
 SOURCE_RELEASE_NAME = bmptestsuite-src-$(VERSION)
