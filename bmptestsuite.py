@@ -387,8 +387,9 @@ class bitmap_32bpp(bitmap) :
 class bitmap_32bpp_colortable(bitmap_32bpp) :
     """
     A bitmap that is 32 bpp uncompressed RGB.
-    This bitmap has a color table, which is used for optimizing colors on
-    palette-based devices.
+    This bitmap has an 'optimal color palette', which is used for optimizing colors on
+    palette-based devices, but does NOT have any color masks.
+    It's unclear to me if this is well-formed or not.
     """
 
     def __init__(self, width, height) :
@@ -401,6 +402,39 @@ class bitmap_32bpp_colortable(bitmap_32bpp) :
             0x0000FF00, # green
             0x000000FF, # blue
             0x00FFFFFF] # white
+
+
+class bitmap_32bpp_888_colortable(bitmap_32bpp) :
+    """
+    A bitmap that is 32 bpp uncompressed RGB.
+    This bitmap has three DWORD color masks, followed by an 'optimal color palette',
+    which is used for optimizing colors on palette-based devices.
+    """
+
+    def __init__(self, width, height) :
+        bitmap_32bpp.__init__(self, width, height)
+
+        self.palette = [
+            0x00FF0000, # red mask
+            0x0000FF00, # green mask
+            0x000000FF, # blue mask
+
+            0x00FF00FF, # magenta
+            0x00000000, # black
+            0x00FF0000, # red
+            0x0000FF00, # green
+            0x000000FF, # blue
+            0x00FFFFFF] # white
+
+    def get_colors_used(self) :
+        "Return the biClrUsed to put into the BITMAPINFOHEADER"
+        # This only includes the optimized color palette--not the color masks.
+        return 6
+
+    def get_compression(self) :
+        "Return the biCompression to put into the BITMAPINFOHEADER"
+        # must be BI_BITFIELDS because we have color masks
+        return self.BI_BITFIELDS
 
 
 class bitmap_24bpp(bitmap) :
@@ -2465,8 +2499,12 @@ def generate_valid_bitmaps() :
         bitmap_32bpp(320, 240))
 
     log.do_testcase(
-        '32bpp-colortable-320x240.bmp',
+        '32bpp-optimalpalette-320x240.bmp',
         bitmap_32bpp_colortable(320, 240))
+
+    log.do_testcase(
+        '32bpp-888-optimalpalette-320x240.bmp',
+        bitmap_32bpp_888_colortable(320, 240))
 
     log.do_testcase(
         '32bpp-1x1.bmp',

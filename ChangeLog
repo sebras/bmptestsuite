@@ -1,3 +1,8 @@
+2005-04-03 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Add a test case for when a 32 bpp image contains color masks and
+	an "optimal color table".
+	
 2005-04-02 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Remove semi-colons at the end of lines (a habit from hacking C code).
