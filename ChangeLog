@@ -1,22 +1,29 @@
-2005-04-31 David Costanzo <david_costanzo@yahoo.com>
+2005-04-02 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Remove semi-colons at the end of lines (a habit from hacking C code).
+	Add a test case for when a 32 bpp image contains an "optimal color table".
+	I'm not sure what that is, but MS Paint handles it and GTK+ doesn't.
+	Fix misspellings of "biCompression" in the __doc__ strings.
+
+2005-03-31 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add bitmaps for various "pels per meter" values.
 	Change the default "pels per meter" to 1000 (it was zero)
 	Change the default "ColorsImportant" to 0, to indicate all colors are important.
 	Add bitmaps for various values of "ColorsUsed" and "ColorsImportant".
 	
-2005-04-30 David Costanzo <david_costanzo@yahoo.com>
+2005-03-30 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add a bitmap whose filename has spaces in it.
 	Add a directory with a ".bmp" file extension.
 	
-2005-04-29 David Costanzo <david_costanzo@yahoo.com>
+2005-03-29 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add a 64000x1 image.
 	Add a 1x64000 image.
 	Add an uncompressed image with an ImageSize of 0.
 	
-2005-04-28 David Costanzo <david_costanzo@yahoo.com>
+2005-03-28 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py ChangeLog README COPYING
  	Create initial public release 0.7.
 	This includes a representitive set of version 3 bitmaps.

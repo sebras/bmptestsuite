@@ -321,7 +321,7 @@ class bitmap :
 
     def write(self, filename) :
 
-        _safe_unlink(filename);
+        _safe_unlink(filename)
         
         bmpfile = file(filename, 'wb')
 
@@ -384,6 +384,23 @@ class bitmap_32bpp(bitmap) :
         return bitmapdata
 
 
+class bitmap_32bpp_colortable(bitmap_32bpp) :
+    """
+    A bitmap that is 32 bpp uncompressed RGB.
+    This bitmap has a color table, which is used for optimizing colors on
+    palette-based devices.
+    """
+
+    def __init__(self, width, height) :
+        bitmap_32bpp.__init__(self, width, height)
+
+        self.palette = [
+            0x00FF00FF, # magenta
+            0x00000000, # black
+            0x00FF0000, # red
+            0x0000FF00, # green
+            0x000000FF, # blue
+            0x00FFFFFF] # white
 
 
 class bitmap_24bpp(bitmap) :
@@ -853,8 +870,8 @@ class bitmap_rle8_encoded(bitmap_rle8) :
             self.INDEX_WHITE)
 
         bitmapdata = ''
-        run_length = 0;
-        prev_pixel = -1;
+        run_length = 0
+        prev_pixel = -1
         for row in range(0, len(raster)) :
             for col in range(0, len(raster[row])) :
                 
@@ -939,8 +956,8 @@ class bitmap_rle8_delta(bitmap_rle8) :
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
         bitmapdata = ''
-        run_length = 0;
-        prev_pixel = -1;
+        run_length = 0
+        prev_pixel = -1
         for row in range(0, len(raster)) :
 
             # check if the row contains nothing but transparent pixels
@@ -1153,8 +1170,8 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
             self.INDEX_WHITE)
 
         bitmapdata = ''
-        run_length = 0;
-        prev_pixel = -1;
+        run_length = 0
+        prev_pixel = -1
         for row in range(0, len(raster)) :
             for col in range(0, len(raster[row])) :
                 
@@ -1393,8 +1410,8 @@ class bitmap_rle4_encoded(bitmap_rle4) :
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
         bitmapdata = ''
-        run_length = 0;
-        prev_pixel = -1;
+        run_length = 0
+        prev_pixel = -1
         for row in range(0, len(raster)) :
             for col in range(0, len(raster[row])) :
                 
@@ -1546,8 +1563,8 @@ class bitmap_rle4_alternate(bitmap_rle4) :
         self.apply_top_left_logo(raster, 0, 6)
 
         bitmapdata = ''
-        run_length = 0;
-        prev_pixel = -1;
+        run_length = 0
+        prev_pixel = -1
         for row in range(0, len(raster)) :
             for col in range(0, len(raster[row])) :
                 
@@ -1638,8 +1655,8 @@ class bitmap_rle4_delta(bitmap_rle4) :
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
         bitmapdata = ''
-        run_length = 0;
-        prev_pixel = -1;
+        run_length = 0
+        prev_pixel = -1
         for row in range(0, len(raster)) :
 
             # check if the row contains nothing but transparent pixels
@@ -1869,7 +1886,7 @@ class bitmap_emptyfile(bitmap_1bpp) :
 
     def write(self, filename) :
 
-        _safe_unlink(filename);
+        _safe_unlink(filename)
         
         bmpfile = file(filename, 'wb')
         bmpfile.close()
@@ -1904,7 +1921,7 @@ class bitmap_croppedmagicnumber(bitmap_1bpp) :
 
     def write(self, filename) :
 
-        _safe_unlink(filename);
+        _safe_unlink(filename)
         
         bmpfile = file(filename, 'wb')
         bmpfile.write('B')
@@ -1957,7 +1974,7 @@ class bitmap_negativeoffbits(bitmap_1bpp) :
     """
 
     def get_offset_of_bitmap_data(self) :
-        return -1;
+        return -1
 
 class bitmap_largeoffbits(bitmap_1bpp) :
     """
@@ -1965,7 +1982,7 @@ class bitmap_largeoffbits(bitmap_1bpp) :
     """
 
     def get_offset_of_bitmap_data(self) :
-        return self.get_filesize() + 1;
+        return self.get_filesize() + 1
 
 
 class bitmap_zerooffbits(bitmap_1bpp) :
@@ -1976,7 +1993,7 @@ class bitmap_zerooffbits(bitmap_1bpp) :
     """
 
     def get_offset_of_bitmap_data(self) :
-        return 0;
+        return 0
 
 class bitmap_missinginfoheader(bitmap_1bpp) :
     """
@@ -1986,7 +2003,7 @@ class bitmap_missinginfoheader(bitmap_1bpp) :
 
     def write(self, filename) :
 
-        _safe_unlink(filename);
+        _safe_unlink(filename)
         
         bmpfile = file(filename, 'wb')
 
@@ -2114,7 +2131,7 @@ class bitmap_largebitdepth(bitmap_1bpp) :
 
 class bitmap_unknowncompression(bitmap_1bpp) :
     """
-    A bitmap with an unrecognized 'biCompresion' field.
+    A bitmap with an unrecognized 'biCompression' field.
     """
 
     def get_compression(self) :
@@ -2122,7 +2139,7 @@ class bitmap_unknowncompression(bitmap_1bpp) :
 
 class bitmap_4bpp_rle8compression(bitmap_rle4_encoded) :
     """
-    A 4 bpp bitmap with a 'biCompresion' field of BI_RLE8.
+    A 4 bpp bitmap with a 'biCompression' field of BI_RLE8.
     Only 8 bpp bitmaps may use BI_RLE8.
     """
 
@@ -2132,7 +2149,7 @@ class bitmap_4bpp_rle8compression(bitmap_rle4_encoded) :
 
 class bitmap_8bpp_rle4compression(bitmap_rle8_encoded) :
     """
-    An 8 bpp bitmap with a 'biCompresion' field of BI_RLE4.
+    An 8 bpp bitmap with a 'biCompression' field of BI_RLE4.
     Only 4 bpp bitmaps may use BI_RLE4.
     """
 
@@ -2446,6 +2463,10 @@ def generate_valid_bitmaps() :
     log.do_testcase(
         '32bpp-320x240.bmp',
         bitmap_32bpp(320, 240))
+
+    log.do_testcase(
+        '32bpp-colortable-320x240.bmp',
+        bitmap_32bpp_colortable(320, 240))
 
     log.do_testcase(
         '32bpp-1x1.bmp',
