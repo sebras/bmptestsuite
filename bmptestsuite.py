@@ -1816,6 +1816,16 @@ class bitmap_emptyfile(bitmap_1bpp) :
         
         bmpfile = file(filename, 'wb')
         bmpfile.close()
+	
+class bitmap_directory(bitmap_1bpp) :
+    """
+    A directory that has a '.bmp' extension.
+    This tests what happens when the directory entity exists, 
+    but fopen() fails.
+    """
+
+    def write(self, directoryname) :
+        _safe_create_dir(directoryname)
 
 class bitmap_badmagicnumber(bitmap_1bpp) :
     """
@@ -2294,6 +2304,10 @@ def generate_valid_bitmaps() :
         '24bpp-imagesize-zero.bmp',
         bitmap_24bpp_zeroimagesize(320, 240))
 
+    log.do_testcase(
+        ' spaces in  filename.bmp',
+        bitmap_24bpp(320, 240),
+        'The filename has spaces in it.  This tests that the renderer properly escapes filenames when it uses a shell command to process bitmaps.')
 
     # valid 32 bpp bitmaps
     log.do_testcase(
@@ -2465,8 +2479,9 @@ def generate_invalid_bitmaps() :
         '32bpp-0x0.bmp',
         bitmap_32bpp(0, 0))
 
-    # a directory with a "bmp" extension
-    _safe_create_dir('bitmaps/invalid/directory.bmp')
+    log.do_testcase(
+        'directory.bmp',
+        bitmap_directory(320, 240))
 
     # write out the HTML index
     log.write_index('index.html')
