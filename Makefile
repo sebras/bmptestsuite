@@ -5,7 +5,7 @@ TAR=tar
 ZIP=zip -r -q -9 -X
 TOUCH=touch
 
-VERSION=0.6+
+VERSION=0.7
 
 RELEASE_NAME        = bmptestsuite-$(VERSION)
 SOURCE_RELEASE_NAME = bmptestsuite-src-$(VERSION)
@@ -13,6 +13,8 @@ SOURCE_RELEASE_NAME = bmptestsuite-src-$(VERSION)
 SRCS += Makefile
 SRCS += bmptestsuite.py
 SRCS += COPYING
+SRCS += ChangeLog
+SRCS += README
 
 all : bitmaps.timestamp
 
@@ -43,6 +45,7 @@ release-binary : $(BINARY_RELEASES)
 	rm -rf $(RELEASE_NAME)
 	cp --recursive bitmaps $(RELEASE_NAME)
 	cp COPYING $(RELEASE_NAME)
+	cp README  $(RELEASE_NAME)
 	$(TAR) -cj -f $(RELEASE_NAME).tar.bz2 $(RELEASE_NAME)
 	$(TAR) -cz -f $(RELEASE_NAME).tar.gz  $(RELEASE_NAME)
 	$(ZIP) $(RELEASE_NAME).zip $(RELEASE_NAME)
