@@ -29,6 +29,11 @@ clean :
 	$(RM) *.timestamp
 	$(RM) -r bitmaps
 
+# erase all files created by the "release" target
+distclean :
+	$(RM) -r bmptestsuite-?.*
+	$(RM) -r bmptestsuite-src-?.*
+
 
 release : release-source release-binary ;
 
