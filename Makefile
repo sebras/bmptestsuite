@@ -23,7 +23,7 @@ clean :
 release : all
 	rm -rf $(RELEASE_NAME)
 	mv bitmaps $(RELEASE_NAME)
-	mv COPYING $(RELEASE_NAME)
+	cp COPYING $(RELEASE_NAME)
 	$(TAR) -cj -f $(RELEASE_NAME).tar.bz2 $(RELEASE_NAME)
 	$(TAR) -cz -f $(RELEASE_NAME).tar.gz  $(RELEASE_NAME)
 	$(ZIP) $(RELEASE_NAME).zip $(RELEASE_NAME)
