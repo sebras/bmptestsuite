@@ -1,4 +1,23 @@
 #! /usr/bin/python
+#######################################################################
+# The author disclaims all copyrights associated with this code (hereafter
+# referred to as the "Work").
+#
+# The author makes this dedication for the benefit of the public at large
+# and to the detriment of the author's heirs and successors. The author
+# intends this dedication to be an overt act of relinquishment in
+# perpetuity of all present and future rights under copyright law,
+# whether vested or contingent, in the Work. The author understands that
+# such relinquishment of all rights includes the relinquishment of all
+# rights to enforce (by lawsuit or otherwise) those copyrights in the
+# Work.
+#
+# The author recognizes that, once placed in the public domain, the
+# Work may be freely reproduced, distributed, transmitted, used,
+# modified, built upon, or otherwise exploited by anyone for any
+# purpose, commercial or non-commercial, and in any way, including by
+# methods that have not yet been invented or conceived.
+#######################################################################
 
 import struct
 import os
@@ -1017,6 +1036,7 @@ class bitmap_rle8_topdown(bitmap_rle8_encoded) :
     """
     An RLE8 compressed bitmap with a negative height.
     This is an illegal value: top-down images cannot be compressed.
+    However, many renderers allow top-down compressed images.
     """
 
     def get_height(self) :
@@ -1772,6 +1792,18 @@ class bitmap_width_height_overflow(bitmap_565) :
     def get_height(self) :
         return 0x10000
 
+class bitmap_emptyfile(bitmap_1bpp) :
+    """
+    A zero-byte file.
+    This tests that what happens when the first fread() fails.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename);
+        
+        bmpfile = file(filename, 'wb')
+        bmpfile.close()
 
 class bitmap_badmagicnumber(bitmap_1bpp) :
     """
@@ -1787,7 +1819,7 @@ class bitmap_badmagicnumber(bitmap_1bpp) :
 
 class bitmap_croppedmagicnumber(bitmap_1bpp) :
     """
-    A bitmap that only contains the 'B' of 'BM'
+    A one byte bitmap that only contains the 'B' of the magic number.
     This tests that what happens when the first fread() fails.
     """
 
@@ -1822,7 +1854,7 @@ class bitmap_zerofilesize(bitmap_1bpp) :
 class bitmap_badreserved1(bitmap_1bpp) :
     """
     A bitmap with an 'wReserved1' field that is not 0.
-    This is technically illegal, but renderers ignore this field.
+    This is technically illegal, but most renderers ignore this field.
     """
 
     def get_reserved1(self) :
@@ -1831,7 +1863,7 @@ class bitmap_badreserved1(bitmap_1bpp) :
 class bitmap_badreserved2(bitmap_1bpp) :
     """
     A bitmap with an 'wReserved2' field that is not 0.
-    This is technically illegal, but renderers ignore this field.
+    This is technically illegal, but most renderers ignore this field.
     """
 
     def get_reserved2(self) :
@@ -1860,6 +1892,8 @@ class bitmap_largeoffbits(bitmap_1bpp) :
 class bitmap_zerooffbits(bitmap_1bpp) :
     """
     A bitmap with an 'dwOffBits' field that is 0.
+    A renderer may recover from this by assuming that the bitmap data
+    immediately follows the palette.
     """
 
     def get_offset_of_bitmap_data(self) :
@@ -2156,129 +2190,215 @@ def generate_valid_bitmaps() :
     bmp.write('bitmaps/valid/32bpp-1x1.bmp')
 
 
+class testcase_logger :
+    def __init__(self, path) :
+        # a map from filename to English description of the file.
+        self.descriptions = {}
+
+        # the file path to the directory containing the bitmap
+        self.path         = path
+
+    def write_index(self, index_filename) :
+        keys = self.descriptions.keys()
+        keys.sort()
+
+        _safe_unlink(index_filename)
+        indexfile = file(index_filename, 'wb')
+
+        indexfile.write('<html>\n')
+        indexfile.write('  <head>\n')
+        indexfile.write('    <title>Directory Listing</title>\n')
+        indexfile.write('  </head>\n')
+        indexfile.write('  <body>\n')
+        indexfile.write('  <table border="1">\n')
+        indexfile.write('\n')
+        indexfile.write('    <tr>\n')
+        indexfile.write('      <th>Filename</th>\n')
+        indexfile.write('      <th>Description</th>\n')
+        indexfile.write('    </tr>\n')
+        indexfile.write('\n')
+
+        for key in keys :
+            indexfile.write('    <tr>\n')
+            indexfile.write('      <td><a href="' + key + '">' + key + '</a></td>\n')
+            indexfile.write('      <td>' + self.descriptions[key] + '</td>\n')
+            indexfile.write('    </tr>\n')
+            indexfile.write('\n')
+
+        indexfile.write('    </table>\n')
+        indexfile.write('  </body>\n')
+        indexfile.write('</html>\n')
+
+        indexfile.close()
+
+
+    def do_testcase(self, filename, bitmap) :
+        bitmap.write(self.path + '/' + filename)
+
+        self.descriptions[filename] = bitmap.__doc__
+
 
 def generate_invalid_bitmaps() :
 
     _safe_create_dir('bitmaps')
     _safe_create_dir('bitmaps/invalid')
 
+    log = testcase_logger('bitmaps/invalid')
+
     # invalid images
-    bmp = bitmap_croppedmagicnumber(320, 240)
-    bmp.write('bitmaps/invalid/magicnumber-cropped.bmp')
+    log.do_testcase(
+        'emptyfile.bmp',
+        bitmap_emptyfile(320, 240))
 
-    bmp = bitmap_badmagicnumber(320, 240)
-    bmp.write('bitmaps/invalid/magicnumber-bad.bmp')
+    log.do_testcase(
+        'magicnumber-cropped.bmp',
+        bitmap_croppedmagicnumber(320, 240))
+    
+    log.do_testcase(
+        'magicnumber-bad.bmp',
+        bitmap_badmagicnumber(320, 240))
 
-    bmp = bitmap_badfilesize(320, 240)
-    bmp.write('bitmaps/invalid/filesize-bad.bmp')
+    log.do_testcase(
+        'filesize-bad.bmp',
+        bitmap_badfilesize(320, 240))
 
-    bmp = bitmap_zerofilesize(320, 240)
-    bmp.write('bitmaps/invalid/filesize-zero.bmp')
+    log.do_testcase(
+        'filesize-zero.bmp',
+        bitmap_zerofilesize(320, 240))
 
-    bmp = bitmap_badreserved1(320, 240)
-    bmp.write('bitmaps/invalid/reserved1-bad.bmp')
+    log.do_testcase(
+        'reserved1-bad.bmp',
+        bitmap_badreserved1(320, 240))
 
-    bmp = bitmap_badreserved2(320, 240)
-    bmp.write('bitmaps/invalid/reserved2-bad.bmp')
+    log.do_testcase(
+        'reserved2-bad.bmp',
+        bitmap_badreserved2(320, 240))
 
-    bmp = bitmap_zerooffbits(320, 240)
-    bmp.write('bitmaps/invalid/offbits-zero.bmp')
+    log.do_testcase(
+        'offbits-zero.bmp',
+        bitmap_zerooffbits(320, 240))
 
-    bmp = bitmap_negativeoffbits(320, 240)
-    bmp.write('bitmaps/invalid/offbits-negative.bmp')
+    log.do_testcase(
+        'offbits-negative.bmp',
+        bitmap_negativeoffbits(320, 240))
 
-    bmp = bitmap_largeoffbits(320, 240)
-    bmp.write('bitmaps/invalid/offbits-large.bmp')
+    log.do_testcase(
+        'offbits-large.bmp',
+        bitmap_largeoffbits(320, 240))
 
-    bmp = bitmap_missinginfoheader(320, 240)
-    bmp.write('bitmaps/invalid/infoheader-missing.bmp')
+    log.do_testcase(
+        'infoheader-missing.bmp',
+        bitmap_missinginfoheader(320, 240))
 
-    bmp = bitmap_smallbmpinfoheadersize(320, 240)
-    bmp.write('bitmaps/invalid/infoheadersize-small.bmp')
+    log.do_testcase(
+        'infoheadersize-small.bmp',
+        bitmap_smallbmpinfoheadersize(320, 240))
 
-    bmp = bitmap_largebmpinfoheadersize(320, 240)
-    bmp.write('bitmaps/invalid/infoheadersize-large.bmp')
+    log.do_testcase(
+        'infoheadersize-large.bmp',
+        bitmap_largebmpinfoheadersize(320, 240))
 
-    bmp = bitmap_zerobmpinfoheadersize(320, 240)
-    bmp.write('bitmaps/invalid/infoheadersize-zero.bmp')
+    log.do_testcase(
+        'infoheadersize-zero.bmp',
+        bitmap_zerobmpinfoheadersize(320, 240))
 
-    bmp = bitmap_zeroheight(320, 240)
-    bmp.write('bitmaps/invalid/height-zero.bmp')
+    log.do_testcase(
+        'height-zero.bmp',
+        bitmap_zeroheight(320, 240))
 
-    bmp = bitmap_rle8_topdown(320, 240)
-    bmp.write('bitmaps/invalid/rle8-height-negative.bmp')
+    log.do_testcase(
+        'rle8-height-negative.bmp',
+        bitmap_rle8_topdown(320, 240))
 
-    bmp = bitmap_rle4_topdown(320, 240)
-    bmp.write('bitmaps/invalid/rle4-height-negative.bmp')
+    log.do_testcase(
+        'rle4-height-negative.bmp',
+        bitmap_rle4_topdown(320, 240))
 
-    bmp = bitmap_zerowidth(320, 240)
-    bmp.write('bitmaps/invalid/width-zero.bmp')
+    log.do_testcase(
+        'width-zero.bmp',
+        bitmap_zerowidth(320, 240))
 
-    bmp = bitmap_negativewidth(320, 240)
-    bmp.write('bitmaps/invalid/width-negative.bmp')
+    log.do_testcase(
+        'width-negative.bmp',
+        bitmap_negativewidth(320, 240))
 
-    bmp = bitmap_zeroplanes(320, 240)
-    bmp.write('bitmaps/invalid/planes-zero.bmp')
+    log.do_testcase(
+        'planes-zero.bmp',
+        bitmap_zeroplanes(320, 240))
 
-    bmp = bitmap_largeplanes(320, 240)
-    bmp.write('bitmaps/invalid/planes-large.bmp')
+    log.do_testcase(
+        'planes-large.bmp',
+        bitmap_largeplanes(320, 240))
 
-    bmp = bitmap_zerobitdepth(320, 240)
-    bmp.write('bitmaps/invalid/bitdepth-zero.bmp')
+    log.do_testcase(
+        'bitdepth-zero.bmp',
+        bitmap_zerobitdepth(320, 240))
 
-    bmp = bitmap_oddbitdepth(320, 240)
-    bmp.write('bitmaps/invalid/bitdepth-odd.bmp')
+    log.do_testcase(
+        'bitdepth-odd.bmp',
+        bitmap_oddbitdepth(320, 240))
 
-    bmp = bitmap_largebitdepth(320, 240)
-    bmp.write('bitmaps/invalid/bitdepth-large.bmp')
+    log.do_testcase(
+        'bitdepth-large.bmp',
+        bitmap_largebitdepth(320, 240))
 
-    bmp = bitmap_unknowncompression(320, 240)
-    bmp.write('bitmaps/invalid/compression-unknown.bmp')
+    log.do_testcase(
+        'compression-unknown.bmp',
+        bitmap_unknowncompression(320, 240))
 
-    bmp = bitmap_4bpp_rle8compression(320, 240)
-    bmp.write('bitmaps/invalid/compression-bad-rle4-for-8bpp.bmp')
+    log.do_testcase(
+        'compression-bad-rle4-for-8bpp.bmp',
+        bitmap_4bpp_rle8compression(320, 240))
+    
+    log.do_testcase(
+        'compression-bad-rle8-for-4bpp.bmp',
+        bitmap_8bpp_rle4compression(320, 240))
 
-    bmp = bitmap_8bpp_rle4compression(320, 240)
-    bmp.write('bitmaps/invalid/compression-bad-rle8-for-4bpp.bmp')
+    log.do_testcase(
+        'width-times-height-overflow.bmp',
+        bitmap_width_height_overflow(320, 240))
 
-    bmp = bitmap_width_height_overflow(320, 240)
-    bmp.write('bitmaps/invalid/width-times-height-overflow.bmp')
+    log.do_testcase(
+        'toomuchdata.bmp',
+        bitmap_toomuchdata(320, 240))
 
-    bmp = bitmap_toomuchdata(320, 240)
-    bmp.write('bitmaps/invalid/toomuchdata.bmp')
+    log.do_testcase(
+        'rle8-toomuchdata.bmp',
+        bitmap_rle8_toomuchdata(320, 240))
 
-    bmp = bitmap_rle8_toomuchdata(320, 240)
-    bmp.write('bitmaps/invalid/rle8-toomuchdata.bmp')
+    log.do_testcase(
+        'rle8-deltaleavesimage.bmp',
+        bitmap_rle8_deltaleavesimage(320, 240))
 
-    bmp = bitmap_rle8_deltaleavesimage(320, 240)
-    bmp.write('bitmaps/invalid/rle8-deltaleavesimage.bmp')
+    log.do_testcase(
+        'palette-too-big.bmp',
+        bitmap_1bpp_palettetoobig(320, 240))
 
-    bmp = bitmap_1bpp_palettetoobig(320, 240)
-    bmp.write('bitmaps/invalid/palette-too-big.bmp')
+    log.do_testcase(
+        '1bpp-no-palette.bmp',
+        bitmap_1bpp_nopalette(320, 240))
 
-    bmp = bitmap_1bpp_nopalette(320, 240)
-    bmp.write('bitmaps/invalid/1bpp-no-palette.bmp')
+    log.do_testcase(
+        '4bpp-no-palette.bmp',
+        bitmap_4bpp_nopalette(320, 240))
 
-    bmp = bitmap_4bpp_nopalette(320, 240)
-    bmp.write('bitmaps/invalid/4bpp-no-palette.bmp')
+    log.do_testcase(
+        '8bpp-no-palette.bmp',
+        bitmap_8bpp_nopalette(320, 240))
 
-    bmp = bitmap_8bpp_nopalette(320, 240)
-    bmp.write('bitmaps/invalid/8bpp-no-palette.bmp')
+    log.do_testcase(
+        '8bpp-pixels-not-in-palette.bmp',
+        bitmap_8bpp_pixelnotinpalette(254, 128))
 
-    bmp = bitmap_8bpp_pixelnotinpalette(254, 128)
-    bmp.write('bitmaps/invalid/8bpp-pixels-not-in-palette.bmp')
-
-    bmp = bitmap_32bpp(0, 0)
-    bmp.write('bitmaps/invalid/32bpp-0x0.bmp');
+    log.do_testcase(
+        '32bpp-0x0.bmp',
+        bitmap_32bpp(0, 0))
 
     # a directory with a "bmp" extension
     _safe_create_dir('bitmaps/invalid/directory.bmp')
 
-    # an empty file
-    _safe_unlink('bitmaps/invalid/emptyfile.bmp')
-    bmpfile = file('bitmaps/invalid/emptyfile.bmp', 'wb')
-    bmpfile.close()
-
+    # write out the HTML index
+    log.write_index('bitmaps/invalid/index.html')
 
 if __name__ == "__main__" :
 
