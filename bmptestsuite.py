@@ -175,7 +175,7 @@ class bitmap :
     def get_colors_important(self) :
         "Return the biClrImportant to put into the BITMAPINFOHEADER"
         # assume that all colors are important
-        return len(self.palette)
+        return 0
 
     def get_bitmapinfoheader(self) :
         "Return the BITMAPINFOHEADER"
@@ -706,6 +706,63 @@ class bitmap_8bpp_nopalette(bitmap_8bpp) :
         # empty the palette
         self.palette = []
 
+class bitmap_8bpp_zerocolorsused(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a 'biColorsUsed' field of 0.
+    This indicates that the palette contains 256 entries, which it does.
+    """
+
+    def __init__(self, width, height) :
+        bitmap_8bpp.__init__(self, width, height)
+
+        # fill the palette
+        while len(self.palette) < 256 :
+            self.palette.append(0x00CCCCCC)
+
+    def get_colors_used(self) :
+        return 0
+
+class bitmap_8bpp_largecolorsused(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a very large 'biColorsUsed' field.
+    This is invalid--biColorsImportant shouldn't exceed 256.
+    This attempts to trick the bitmap processor into accessing invalid memory.
+    """
+    def get_colors_used(self) :
+        return sys.maxint
+
+class bitmap_8bpp_negativecolorsused(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a negative 'biColorsUsed' field.
+    This is invalid--biColorsImportant can't be below 0.
+    This attempts to trick the bitmap processor into accessing invalid memory.
+    """
+    def get_colors_used(self) :
+        return -1000
+
+class bitmap_8bpp_twocolorsimportant(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with five colors, but a 'biColorsImportant' field of 2.
+    This indicates that only black and white are important.
+    """
+    def get_colors_important(self) :
+        return 2
+
+class bitmap_8bpp_largecolorsimportant(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with five colors, but a very large 'biColorsImportant' field.
+    This is invalid--biColorsImportant shouldn't exceed biColorsUsed.
+    """
+    def get_colors_important(self) :
+        return sys.maxint
+
+class bitmap_8bpp_negativecolorsimportant(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap with a negative 'biColorsImportant' field.
+    This is invalid--biColorsImportant can't be below 0.
+    """
+    def get_colors_used(self) :
+        return -1000
 
 class bitmap_rle8(bitmap_8bpp) :
     "A base class for RLE8 bitmaps that implements some helpers routines."
@@ -2316,6 +2373,14 @@ def generate_valid_bitmaps() :
         bitmap_8bpp(1, 64000),
         'The image is a very long, blue vertical line.')
 
+    log.do_testcase(
+        '8bpp-colorsused-zero.bmp',
+        bitmap_8bpp_zerocolorsused(320, 240))
+
+    log.do_testcase(
+        '8bpp-colorsimportant-two.bmp',
+        bitmap_8bpp_twocolorsimportant(320, 240))
+
     # valid 5-5-5 bitmaps
     for width in range(320,322) :
         log.do_testcase(
@@ -2476,6 +2541,10 @@ def generate_invalid_bitmaps() :
         bitmap_negativewidth(320, 240))
 
     log.do_testcase(
+        'width-times-height-overflow.bmp',
+        bitmap_width_height_overflow(320, 240))
+
+    log.do_testcase(
         'planes-zero.bmp',
         bitmap_zeroplanes(320, 240))
 
@@ -2532,8 +2601,20 @@ def generate_invalid_bitmaps() :
         bitmap_8bpp_largeypelspermeter(320, 240))
 
     log.do_testcase(
-        'width-times-height-overflow.bmp',
-        bitmap_width_height_overflow(320, 240))
+        '8bpp-colorsused-large.bmp',
+        bitmap_8bpp_largecolorsused(320, 240))
+
+    log.do_testcase(
+        '8bpp-colorsused-negative.bmp',
+        bitmap_8bpp_negativecolorsused(320, 240))
+
+    log.do_testcase(
+        '8bpp-colorsimportant-large.bmp',
+        bitmap_8bpp_largecolorsimportant(320, 240))
+
+    log.do_testcase(
+        '8bpp-colorsimportant-negative.bmp',
+        bitmap_8bpp_negativecolorsimportant(320, 240))
 
     log.do_testcase(
         'toomuchdata.bmp',

@@ -1,6 +1,9 @@
 2005-04-31 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add bitmaps for various "pels per meter" values.
+	Change the default "pels per meter" to 1000 (it was zero)
+	Change the default "ColorsImportant" to 0, to indicate all colors are important.
+	Add bitmaps for various values of "ColorsUsed" and "ColorsImportant".
 	
 2005-04-30 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
