@@ -387,7 +387,7 @@ class bitmap_32bpp(bitmap) :
 
 
 class bitmap_24bpp(bitmap) :
-    "A bitmap that is 24 bpp uncompressed RGB"
+    "An uncompressed bitmap with 24 bits per pixel. "
 
     def __init__(self, width, height) :
         bitmap.__init__(self, 24, width, height)
@@ -556,7 +556,7 @@ class bitmap_565(bitmap) :
 
 
 class bitmap_565_topdown(bitmap_565) :
-    "A 'top down' bitmap that is 5-6-5 uncompressed RGB"
+    "A 'top down' bitmap that is 5-6-5 uncompressed RGB."
 
     def get_height(self) :
         # a negative value makes a bitmap top-down
@@ -565,7 +565,7 @@ class bitmap_565_topdown(bitmap_565) :
 
 
 class bitmap_8bpp(bitmap) :
-    "A bitmap that is 8 bits per pixel uncompressed RGB"
+    "An uncompressed RGB bitmap that has 8 bits per pixel."
 
     def __init__(self, width, height) :
         bitmap.__init__(self, 8, width, height)
@@ -1156,7 +1156,7 @@ class bitmap_rle8_deltaleavesimage(bitmap_rle8_encoded) :
         return bitmapdata
 
 class bitmap_4bpp(bitmap) :
-    "An uncompressed bitmap that has 4 bits per pixel"
+    "An uncompressed bitmap that has 4 bits per pixel."
 
     def __init__(self, width, height) :
         bitmap.__init__(self, 4, width, height)
@@ -1371,7 +1371,7 @@ class bitmap_rle4_encoded(bitmap_rle4) :
 class bitmap_rle4_absolute(bitmap_rle4) :
     """
     A run-length encoded bitmap that has 4 bits per pixel.
-    The entire bitmap is in 'absolute mode'
+    The entire bitmap is in 'absolute mode'.
     """
 
     def create_bitmapdata(self) :
@@ -1436,6 +1436,7 @@ class bitmap_rle4_alternate(bitmap_rle4) :
     """
     A simple run-length encoded bitmap that has 4 bits per pixel.
     The entire bitmap is in 'encoded mode'.
+    The runs encode alternating pixel colors, such as dithering would create.
     """
 
     def __init__(self, width, height) :
@@ -1668,7 +1669,7 @@ class bitmap_4bpp_nopalette(bitmap_4bpp) :
 
 
 class bitmap_1bpp(bitmap) :
-    "A bitmap that has 1 bit per pixel"
+    "A bitmap that has 1 bit per pixel."
 
     def __init__(self, width, height) :
         bitmap.__init__(self, 1, width, height)
@@ -1678,7 +1679,7 @@ class bitmap_1bpp(bitmap) :
             0x00FFFFFF]  # while
 
     def create_bitmapdata(self) :
-        "Return the bitmap data as uncompressed 1 bpp"
+        "Return the bitmap data as uncompressed 1 bpp."
         
         # widths are in bits (pixels)
         stripe1_width = self.width / 3
@@ -1737,7 +1738,7 @@ class bitmap_1bpp(bitmap) :
 
 
 class bitmap_1bpp_color(bitmap_1bpp) :
-    "A bitmap that has 1 bit per pixel and a color palette"
+    "A bitmap that has 1 bit per pixel and a color palette."
 
     def __init__(self, width, height) :
         bitmap_1bpp.__init__(self, width, height)
@@ -1747,7 +1748,7 @@ class bitmap_1bpp_color(bitmap_1bpp) :
             0x00000FFF]  # mostly blue
 
 class bitmap_1bpp_overlappingcolor(bitmap_1bpp) :
-    "A bitmap that has 1 bit per pixel and a color palette with colors that overlap"
+    "A bitmap that has 1 bit per pixel and a color palette with colors that overlap."
 
     def __init__(self, width, height) :
         bitmap_1bpp.__init__(self, width, height)
@@ -2070,126 +2071,6 @@ class bitmap_toomuchdata(bitmap_1bpp) :
         return bitmap_1bpp.create_bitmapdata(self) * 2
 
 
-def generate_valid_bitmaps() :
-
-    _safe_create_dir('bitmaps')
-    _safe_create_dir('bitmaps/valid')
-
-    # valid 1 bpp bitmaps
-    for width in range(320,336) :
-        filename = 'bitmaps/valid/1bpp-%ix240.bmp' % width
-        bmp = bitmap_1bpp(width, 240)
-        bmp.write(filename);
-
-    bmp = bitmap_1bpp(1, 1)
-    bmp.write('bitmaps/valid/1bpp-1x1.bmp')
-
-    bmp = bitmap_1bpp_color(320, 240)
-    bmp.write('bitmaps/valid/1bpp-320x240-color.bmp')
-
-    bmp = bitmap_1bpp_overlappingcolor(320, 240)
-    bmp.write('bitmaps/valid/1bpp-320x240-overlappingcolor.bmp')
-
-
-    # valid 4 bbp bitmap
-    for width in range(320,328) :
-        filename = 'bitmaps/valid/4bpp-%ix240.bmp' % width
-        bmp = bitmap_4bpp(width, 240)
-        bmp.write(filename);
-
-    for width in range (320, 321):
-        filename = 'bitmaps/valid/rle4-encoded-%ix240.bmp' % width
-        bmp = bitmap_rle4_encoded(width, 240)
-        bmp.write(filename);
-
-    for width in range (320, 321):
-        filename = 'bitmaps/valid/rle4-absolute-%ix240.bmp' % width
-        bmp = bitmap_rle4_absolute(width, 240)
-        bmp.write(filename);
-
-    for width in range (320, 321):
-        filename = 'bitmaps/valid/rle4-alternate-%ix240.bmp' % width
-        bmp = bitmap_rle4_alternate(width, 240)
-        bmp.write(filename);
-
-    bmp = bitmap_rle4_delta(320, 240)
-    bmp.write('bitmaps/valid/rle4-delta-320x240.bmp');
-
-    bmp = bitmap_4bpp(1, 1)
-    bmp.write('bitmaps/valid/4bpp-1x1.bmp')
-
-
-    # valid 8 bpp bitmaps
-    for width in range(320,324) :
-        filename = 'bitmaps/valid/8bpp-%ix240.bmp' % width
-        bmp = bitmap_8bpp(width, 240)
-        bmp.write(filename);
-
-    for width in range (320, 321):
-        filename = 'bitmaps/valid/rle8-encoded-%ix240.bmp' % width
-        bmp = bitmap_rle8_encoded(width, 240)
-        bmp.write(filename);
-
-    for width in range (320, 321):
-        filename = 'bitmaps/valid/rle8-absolute-%ix240.bmp' % width
-        bmp = bitmap_rle8_absolute(width, 240)
-        bmp.write(filename);
-
-    bmp = bitmap_rle8_delta(320, 240)
-    bmp.write('bitmaps/valid/rle8-delta-320x240.bmp');
-
-    bmp = bitmap_rle8_blank(160, 120)
-    bmp.write('bitmaps/valid/rle8-blank-160x120.bmp');
-
-    bmp = bitmap_8bpp(1, 1)
-    bmp.write('bitmaps/valid/8bpp-1x1.bmp')
-
-
-    # valid 5-5-5 bitmaps
-    for width in range(320,322) :
-        filename = 'bitmaps/valid/555-%ix240.bmp' % width
-        bmp = bitmap_555(width, 240)
-        bmp.write(filename);
-
-    bmp = bitmap_555(1, 1)
-    bmp.write('bitmaps/valid/555-1x1.bmp')
-
-
-    # valid 5-6-5 bitmaps
-    for width in range(320,323) :
-        filename = 'bitmaps/valid/565-%ix240.bmp' % width
-        bmp = bitmap_565(width, 240)
-        bmp.write(filename);
-
-        filename = 'bitmaps/valid/565-%ix240-topdown.bmp' % width
-        bmp = bitmap_565_topdown(width, 240)
-        bmp.write(filename);
-
-    bmp = bitmap_565(1, 1)
-    bmp.write('bitmaps/valid/565-1x1.bmp')
-
-
-    # valid 24 bpp bitmaps
-    for width in range(320,324) :
-        filename = 'bitmaps/valid/24bpp-%ix240.bmp' % width
-        bmp = bitmap_24bpp(width, 240)
-        bmp.write(filename);
-
-    bmp = bitmap_24bpp(1, 1)
-    bmp.write('bitmaps/valid/24bpp-1x1.bmp')
-
-    bmp = bitmap_24bpp(320, 240)
-    bmp.write('bitmaps/valid/nofileextension')
-
-
-    # valid 32 bpp bitmaps
-    bmp = bitmap_32bpp(320, 240)
-    bmp.write('bitmaps/valid/32bpp-320x240.bmp');
-
-    bmp = bitmap_32bpp(1, 1)
-    bmp.write('bitmaps/valid/32bpp-1x1.bmp')
-
-
 class testcase_logger :
     def __init__(self, path) :
         # a map from filename to English description of the file.
@@ -2198,10 +2079,11 @@ class testcase_logger :
         # the file path to the directory containing the bitmap
         self.path         = path
 
-    def write_index(self, index_filename) :
+    def write_index(self, basename) :
         keys = self.descriptions.keys()
         keys.sort()
 
+        index_filename = self.path + '/' + basename
         _safe_unlink(index_filename)
         indexfile = file(index_filename, 'wb')
 
@@ -2232,10 +2114,175 @@ class testcase_logger :
         indexfile.close()
 
 
-    def do_testcase(self, filename, bitmap) :
+    def do_testcase(self, filename, bitmap, *rest) :
         bitmap.write(self.path + '/' + filename)
 
-        self.descriptions[filename] = bitmap.__doc__
+        # Figure out the bitmap's English description.
+        # Start with the doc string and append the optional
+        # complementary description argument.
+        description = bitmap.__doc__
+        if len(rest) != 0 :
+            description += ' ' + rest[0]
+
+        self.descriptions[filename] = description
+
+
+def generate_valid_bitmaps() :
+
+    _safe_create_dir('bitmaps')
+    _safe_create_dir('bitmaps/valid')
+
+    log = testcase_logger('bitmaps/valid')
+
+    # valid 1 bpp bitmaps
+    for width in range(320,336) :
+        log.do_testcase(
+            '1bpp-%ix240.bmp' % width,
+            bitmap_1bpp(width, 240),
+            'Each scanline has %i bits of padding.' % (width - 320))
+
+    log.do_testcase(
+      '1bpp-1x1.bmp',
+      bitmap_1bpp(1, 1),
+      'The image is a single black pixel.')
+
+    log.do_testcase(
+        '1bpp-320x240-color.bmp',
+        bitmap_1bpp_color(320, 240))
+
+    log.do_testcase(
+        '1bpp-320x240-overlappingcolor.bmp',
+        bitmap_1bpp_overlappingcolor(320, 240))
+
+
+    # valid 4 bbp bitmap
+    for width in range(320,328) :
+        log.do_testcase(
+            '4bpp-%ix240.bmp' % width,
+            bitmap_4bpp(width, 240),
+            'Each scanline has %i nibbles of padding.' % (width - 320))
+
+    for width in range (320, 321) :
+        log.do_testcase(
+            'rle4-encoded-%ix240.bmp' % width,
+            bitmap_rle4_encoded(width, 240))
+
+    for width in range (320, 321) :
+        log.do_testcase(
+            'rle4-absolute-%ix240.bmp' % width,
+            bitmap_rle4_absolute(width, 240))
+
+    for width in range (320, 321):
+        log.do_testcase(
+            'rle4-alternate-%ix240.bmp' % width,
+            bitmap_rle4_alternate(width, 240))
+
+    log.do_testcase(
+        'rle4-delta-320x240.bmp',
+        bitmap_rle4_delta(320, 240))
+
+    log.do_testcase(
+        '4bpp-1x1.bmp',
+        bitmap_4bpp(1, 1),
+        'The image is a single blue pixel.')
+
+
+    # valid 8 bpp bitmaps
+    for width in range(320,324) :
+        log.do_testcase(
+            '8bpp-%ix240.bmp' % width,
+            bitmap_8bpp(width, 240),
+            'Each scanline has %i bytes of padding.' % (width - 320))
+
+    for width in range (320, 321) :
+        log.do_testcase(
+            'rle8-encoded-%ix240.bmp' % width,
+            bitmap_rle8_encoded(width, 240))
+
+    for width in range (320, 321) :
+        log.do_testcase(
+            'rle8-absolute-%ix240.bmp' % width,
+            bitmap_rle8_absolute(width, 240))
+
+    log.do_testcase(
+        'rle8-delta-320x240.bmp',
+         bitmap_rle8_delta(320, 240))
+
+    log.do_testcase(
+        'rle8-blank-160x120.bmp',
+        bitmap_rle8_blank(160, 120))
+
+    log.do_testcase(
+        '8bpp-1x1.bmp',
+        bitmap_8bpp(1, 1),
+        'The image is a single blue pixel.')
+
+
+    # valid 5-5-5 bitmaps
+    for width in range(320,322) :
+        log.do_testcase(
+            '555-%ix240.bmp' % width,
+            bitmap_555(width, 240),
+            'Each scanline has %i bytes of padding.' % ((width - 320) / 2))
+
+    log.do_testcase(
+        '555-1x1.bmp',
+        bitmap_555(1, 1),
+        'The image is a single blue pixel.')
+
+    # valid 5-6-5 bitmaps
+    for width in range(320,323) :
+        log.do_testcase(
+            '565-%ix240.bmp' % width,
+            bitmap_565(width, 240),
+            'Each scanline has %i bytes of padding.' % ((width - 320) / 2))
+
+        log.do_testcase(
+            '565-%ix240-topdown.bmp' % width,
+            bitmap_565_topdown(width, 240),
+            'Each scanline has %i bytes of padding.' % ((width - 320) / 2))
+
+    log.do_testcase(
+        '565-1x1.bmp',
+        bitmap_565(1, 1),
+        'The image is a single blue pixel.')
+
+
+    # valid 24 bpp bitmaps
+    for width in range(320,324) :
+        log.do_testcase(
+            '24bpp-%ix240.bmp' % width,
+            bitmap_24bpp(width, 240),
+            'Each scanline has %i bytes of padding.' % ((width - 320) / 3))
+
+    log.do_testcase(
+        '24bpp-1x1.bmp',
+        bitmap_24bpp(1, 1),
+        'The image is a single blue pixel.')
+
+    log.do_testcase(
+        'nofileextension',
+        bitmap_24bpp(320, 240),
+        'The filename has no extension.  This tests that the renderer examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
+
+    log.do_testcase(
+        'misleadingextension.jpg',
+        bitmap_24bpp(320, 240),
+        'The filename has a "jpg" file extension.  This tests that the renderer examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
+
+
+    # valid 32 bpp bitmaps
+    log.do_testcase(
+        '32bpp-320x240.bmp',
+        bitmap_32bpp(320, 240))
+
+    log.do_testcase(
+        '32bpp-1x1.bmp',
+        bitmap_32bpp(1, 1),
+        'The image is a single blue pixel.')
+
+    # write out the HTML index
+    log.write_index('index.html')
 
 
 def generate_invalid_bitmaps() :
@@ -2398,7 +2445,7 @@ def generate_invalid_bitmaps() :
     _safe_create_dir('bitmaps/invalid/directory.bmp')
 
     # write out the HTML index
-    log.write_index('bitmaps/invalid/index.html')
+    log.write_index('index.html')
 
 if __name__ == "__main__" :
 
