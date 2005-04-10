@@ -384,6 +384,14 @@ class bitmap_32bpp(bitmap) :
         return bitmapdata
 
 
+class bitmap_32bpp_topdown(bitmap_32bpp) :
+    "A 'top down' uncompressed RGB bitmap that has 32 bits per pixel."
+
+    def get_height(self) :
+        # a negative value makes a bitmap top-down
+        return -self.height
+
+
 class bitmap_32bpp_colortable(bitmap_32bpp) :
     """
     A bitmap that is 32 bpp uncompressed RGB.
@@ -544,6 +552,13 @@ class bitmap_24bpp(bitmap) :
 
         return bitmapdata
 
+
+class bitmap_24bpp_topdown(bitmap_24bpp) :
+    "A 'top down' bitmap that has 24 bits per pixel."
+
+    def get_height(self) :
+        # a negative value makes a bitmap top-down
+        return -self.height
 
 class bitmap_24bpp_zeroimagesize(bitmap_24bpp) :
     """
@@ -745,6 +760,13 @@ class bitmap_8bpp(bitmap) :
 
         return bitmapdata
 
+
+class bitmap_8bpp_topdown(bitmap_8bpp) :
+    "A 'top down' uncompressed RGB bitmap that has 8 bits per pixel."
+
+    def get_height(self) :
+        # a negative value makes a bitmap top-down
+        return -self.height
 
 
 
@@ -1410,6 +1432,13 @@ class bitmap_4bpp(bitmap) :
         return bitmapdata
 
 
+class bitmap_4bpp_topdown(bitmap_4bpp) :
+    "A 'top down' uncompressed RGB bitmap that has 4 bits per pixel."
+
+    def get_height(self) :
+        # a negative value makes a bitmap top-down
+        return -self.height
+
 class bitmap_rle4(bitmap_4bpp) :
     "A base class for RLE4 bitmaps that implements some helpers routines."
 
@@ -1909,6 +1938,12 @@ class bitmap_1bpp(bitmap) :
 
         return bitmapdata
 
+class bitmap_1bpp_topdown(bitmap_1bpp) :
+    "A 'top down' uncompressed RGB bitmap that has 1 bit per pixel."
+
+    def get_height(self) :
+        # a negative value makes a bitmap top-down
+        return -self.height
 
 
 class bitmap_1bpp_color(bitmap_1bpp) :
@@ -2406,8 +2441,11 @@ def generate_valid_bitmaps() :
         '1bpp-320x240-overlappingcolor.bmp',
         bitmap_1bpp_overlappingcolor(320, 240))
 
+    log.do_testcase(
+        '1bpp-topdown-320x240.bmp',
+        bitmap_1bpp_topdown(320, 240))
 
-    # valid 4 bbp bitmap
+    # valid 4 bpp bitmaps
     for width in range(320,328) :
         log.do_testcase(
             '4bpp-%ix240.bmp' % width,
@@ -2437,6 +2475,10 @@ def generate_valid_bitmaps() :
         '4bpp-1x1.bmp',
         bitmap_4bpp(1, 1),
         'The image is a single blue pixel.')
+
+    log.do_testcase(
+        '4bpp-topdown-320x240.bmp',
+        bitmap_4bpp_topdown(320, 240))
 
 
     # valid 8 bpp bitmaps
@@ -2487,6 +2529,10 @@ def generate_valid_bitmaps() :
         '8bpp-colorsimportant-two.bmp',
         bitmap_8bpp_twocolorsimportant(320, 240))
 
+    log.do_testcase(
+        '8bpp-topdown-320x240.bmp',
+        bitmap_8bpp_topdown(320, 240))
+
     # valid 5-5-5 bitmaps
     for width in range(320,322) :
         log.do_testcase(
@@ -2525,6 +2571,10 @@ def generate_valid_bitmaps() :
             'Each scanline has %i bytes of padding.' % ((width - 320) / 3))
 
     log.do_testcase(
+        '24bpp-topdown-320x240.bmp',
+        bitmap_24bpp_topdown(320, 240))
+
+    log.do_testcase(
         '24bpp-1x1.bmp',
         bitmap_24bpp(1, 1),
         'The image is a single blue pixel.')
@@ -2552,6 +2602,10 @@ def generate_valid_bitmaps() :
     log.do_testcase(
         '32bpp-320x240.bmp',
         bitmap_32bpp(320, 240))
+
+    log.do_testcase(
+        '32bpp-topdown-320x240.bmp',
+        bitmap_32bpp_topdown(320, 240))
 
     log.do_testcase(
         '32bpp-optimalpalette-320x240.bmp',

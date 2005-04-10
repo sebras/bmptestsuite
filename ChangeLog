@@ -1,7 +1,10 @@
+2005-04-09 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Add a top-down bitmaps for the following bit-depths: 32,24,8,4, and 1
+	
 2005-04-04 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add a test case for when a 32 bpp image contains 10-11-10 RGB color masks.
-	
 2005-04-03 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add a test case for when a 32 bpp image contains color masks and
