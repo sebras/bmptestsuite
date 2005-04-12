@@ -2108,7 +2108,7 @@ class bitmap_largeoffbits(bitmap_1bpp) :
     def get_offset_of_bitmap_data(self) :
         return self.get_filesize() + 1
 
-
+        
 class bitmap_zerooffbits(bitmap_1bpp) :
     """
     A bitmap with an 'dwOffBits' field that is 0.
@@ -2118,6 +2118,28 @@ class bitmap_zerooffbits(bitmap_1bpp) :
 
     def get_offset_of_bitmap_data(self) :
         return 0
+
+class bitmap_croppedfileinfoheader(bitmap_1bpp) :
+    """
+    A bitmap that is one byte short of having a complete fileinfoheader.
+    This tests that what happens when fread() returns fewer bytes
+    than expected.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+
+        # remove the last byte of the FILEINFOHEADER
+        content = fileinfoheader[0 : len(fileinfoheader) - 1]
+        bmpfile.write(content)
+
+        # don't write anything else.
+        bmpfile.close()
 
 class bitmap_missinginfoheader(bitmap_1bpp) :
     """
@@ -2134,8 +2156,33 @@ class bitmap_missinginfoheader(bitmap_1bpp) :
         fileinfoheader = self.get_fileinfoheader()
         bmpfile.write(fileinfoheader)
 
+        # don't write any other part of the bitmap
         bmpfile.close()
 
+class bitmap_croppedinfoheader(bitmap_1bpp) :
+    """
+    A bitmap that is one byte short of having a complete BITMAPINFOHEADER.
+    This tests that what happens when fread() returns fewer bytes
+    than expected.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+
+        # remove the last byte of the BITMAPINFOHEADER
+        content = bmpinfoheader[0 : len(bmpinfoheader) - 1]
+        bmpfile.write(content)
+
+        # don't write any other part of the bitmap
+        bmpfile.close()
 
 class bitmap_smallbmpinfoheadersize(bitmap_1bpp) :
     """
@@ -2641,6 +2688,10 @@ def generate_invalid_bitmaps() :
         bitmap_emptyfile(320, 240))
 
     log.do_testcase(
+        'fileinfoheader-cropped.bmp',
+        bitmap_croppedfileinfoheader(320, 240))
+
+    log.do_testcase(
         'magicnumber-cropped.bmp',
         bitmap_croppedmagicnumber(320, 240))
     
@@ -2679,6 +2730,10 @@ def generate_invalid_bitmaps() :
     log.do_testcase(
         'infoheader-missing.bmp',
         bitmap_missinginfoheader(320, 240))
+
+    log.do_testcase(
+        'infoheader-cropped.bmp',
+        bitmap_croppedinfoheader(320, 240))
 
     log.do_testcase(
         'infoheadersize-small.bmp',

@@ -1,3 +1,8 @@
+2005-04-11 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Add a bitmap file that ends in the middle of the FILEINFOHEADER.
+	Add a bitmap file that ends in the middle of the BMPINFOHEADER.
+	
 2005-04-09 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add a top-down bitmaps for the following bit-depths: 32,24,8,4, and 1
