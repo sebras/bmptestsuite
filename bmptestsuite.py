@@ -2460,8 +2460,10 @@ class testcase_logger :
 
         self.descriptions[filename] = description
 
-
 def generate_valid_bitmaps() :
+    """
+    Create valid bitmaps of various encodings.
+    """
 
     _safe_create_dir('bitmaps')
     _safe_create_dir('bitmaps/valid')
@@ -2675,12 +2677,99 @@ def generate_valid_bitmaps() :
     log.write_index('index.html')
 
 
-def generate_invalid_bitmaps() :
+def generate_questionable_bitmaps() :
+    """
+    Create bitmaps that are technically invalid, but which most
+    bitmap processors can process, anyway.
+    """
 
     _safe_create_dir('bitmaps')
-    _safe_create_dir('bitmaps/invalid')
+    _safe_create_dir('bitmaps/questionable')
 
-    log = testcase_logger('bitmaps/invalid')
+    log = testcase_logger('bitmaps/questionable')
+
+    log.do_testcase(
+        'filesize-bad.bmp',
+        bitmap_badfilesize(320, 240))
+
+    log.do_testcase(
+        'filesize-zero.bmp',
+        bitmap_zerofilesize(320, 240))
+
+    log.do_testcase(
+        'reserved1-bad.bmp',
+        bitmap_badreserved1(320, 240))
+
+    log.do_testcase(
+        'reserved2-bad.bmp',
+        bitmap_badreserved2(320, 240))
+
+    log.do_testcase(
+        'rle8-height-negative.bmp',
+        bitmap_rle8_topdown(320, 240))
+
+    log.do_testcase(
+        'rle4-height-negative.bmp',
+        bitmap_rle4_topdown(320, 240))
+
+    log.do_testcase(
+        'planes-zero.bmp',
+        bitmap_zeroplanes(320, 240))
+
+    log.do_testcase(
+        'planes-large.bmp',
+        bitmap_largeplanes(320, 240))
+    
+    log.do_testcase(
+        'pels-per-meter-x-zero.bmp',
+        bitmap_8bpp_zeroxpelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-x-negative.bmp',
+        bitmap_8bpp_negativexpelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-x-large.bmp',
+        bitmap_8bpp_largexpelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-y-zero.bmp',
+        bitmap_8bpp_zeroypelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-y-negative.bmp',
+        bitmap_8bpp_negativeypelspermeter(320, 240))
+
+    log.do_testcase(
+        'pels-per-meter-y-large.bmp',
+        bitmap_8bpp_largeypelspermeter(320, 240))
+
+    log.do_testcase(
+        'toomuchdata.bmp',
+        bitmap_toomuchdata(320, 240))
+
+    log.do_testcase(
+        'rle8-toomuchdata.bmp',
+        bitmap_rle8_toomuchdata(320, 240))
+
+    log.do_testcase(
+        '8bpp-pixels-not-in-palette.bmp',
+        bitmap_8bpp_pixelnotinpalette(254, 128))
+
+
+
+def generate_corrupt_bitmaps() :
+    """
+    Create corrupt/malicious bitmaps that are either impossible to process,
+    or that most bitmap processors will refuse to process.
+    For most of these files, the best a bitmap processor can do is
+    display an informative diagnostic and not crash or leak memory.
+    """
+
+    _safe_create_dir('bitmaps')
+    _safe_create_dir('bitmaps/corrupt')
+
+    log = testcase_logger('bitmaps/corrupt')
 
     # invalid images
     log.do_testcase(
@@ -2698,22 +2787,6 @@ def generate_invalid_bitmaps() :
     log.do_testcase(
         'magicnumber-bad.bmp',
         bitmap_badmagicnumber(320, 240))
-
-    log.do_testcase(
-        'filesize-bad.bmp',
-        bitmap_badfilesize(320, 240))
-
-    log.do_testcase(
-        'filesize-zero.bmp',
-        bitmap_zerofilesize(320, 240))
-
-    log.do_testcase(
-        'reserved1-bad.bmp',
-        bitmap_badreserved1(320, 240))
-
-    log.do_testcase(
-        'reserved2-bad.bmp',
-        bitmap_badreserved2(320, 240))
 
     log.do_testcase(
         'offbits-zero.bmp',
@@ -2752,14 +2825,6 @@ def generate_invalid_bitmaps() :
         bitmap_zeroheight(320, 240))
 
     log.do_testcase(
-        'rle8-height-negative.bmp',
-        bitmap_rle8_topdown(320, 240))
-
-    log.do_testcase(
-        'rle4-height-negative.bmp',
-        bitmap_rle4_topdown(320, 240))
-
-    log.do_testcase(
         'width-zero.bmp',
         bitmap_zerowidth(320, 240))
 
@@ -2770,14 +2835,6 @@ def generate_invalid_bitmaps() :
     log.do_testcase(
         'width-times-height-overflow.bmp',
         bitmap_width_height_overflow(320, 240))
-
-    log.do_testcase(
-        'planes-zero.bmp',
-        bitmap_zeroplanes(320, 240))
-
-    log.do_testcase(
-        'planes-large.bmp',
-        bitmap_largeplanes(320, 240))
 
     log.do_testcase(
         'bitdepth-zero.bmp',
@@ -2802,30 +2859,6 @@ def generate_invalid_bitmaps() :
     log.do_testcase(
         'compression-bad-rle8-for-4bpp.bmp',
         bitmap_8bpp_rle4compression(320, 240))
-    
-    log.do_testcase(
-        'pels-per-meter-x-zero.bmp',
-        bitmap_8bpp_zeroxpelspermeter(320, 240))
-
-    log.do_testcase(
-        'pels-per-meter-x-negative.bmp',
-        bitmap_8bpp_negativexpelspermeter(320, 240))
-
-    log.do_testcase(
-        'pels-per-meter-x-large.bmp',
-        bitmap_8bpp_largexpelspermeter(320, 240))
-
-    log.do_testcase(
-        'pels-per-meter-y-zero.bmp',
-        bitmap_8bpp_zeroypelspermeter(320, 240))
-
-    log.do_testcase(
-        'pels-per-meter-y-negative.bmp',
-        bitmap_8bpp_negativeypelspermeter(320, 240))
-
-    log.do_testcase(
-        'pels-per-meter-y-large.bmp',
-        bitmap_8bpp_largeypelspermeter(320, 240))
 
     log.do_testcase(
         '8bpp-colorsused-large.bmp',
@@ -2842,14 +2875,6 @@ def generate_invalid_bitmaps() :
     log.do_testcase(
         '8bpp-colorsimportant-negative.bmp',
         bitmap_8bpp_negativecolorsimportant(320, 240))
-
-    log.do_testcase(
-        'toomuchdata.bmp',
-        bitmap_toomuchdata(320, 240))
-
-    log.do_testcase(
-        'rle8-toomuchdata.bmp',
-        bitmap_rle8_toomuchdata(320, 240))
 
     log.do_testcase(
         'rle8-deltaleavesimage.bmp',
@@ -2872,10 +2897,6 @@ def generate_invalid_bitmaps() :
         bitmap_8bpp_nopalette(320, 240))
 
     log.do_testcase(
-        '8bpp-pixels-not-in-palette.bmp',
-        bitmap_8bpp_pixelnotinpalette(254, 128))
-
-    log.do_testcase(
         '32bpp-0x0.bmp',
         bitmap_32bpp(0, 0))
 
@@ -2888,6 +2909,6 @@ def generate_invalid_bitmaps() :
 
 if __name__ == "__main__" :
 
-    if 1 :
-        generate_valid_bitmaps()
-        generate_invalid_bitmaps()
+    generate_valid_bitmaps()
+    generate_questionable_bitmaps()
+    generate_corrupt_bitmaps()

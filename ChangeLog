@@ -1,5 +1,15 @@
 2005-04-11 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
+	Break out the bitmaps into three categories
+	(valid, questionable, and corrupt), instead of just two
+	(valid and invalid).  This is more sensible since many of
+	the bitmaps that were techincally invalid were processed
+	by all bitmap processors.  It was misleading having these
+	bitmaps grouped with ones that no bitmap processor could
+	possibly render.
+	
+2005-04-11 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
 	Add a bitmap file that ends in the middle of the FILEINFOHEADER.
 	Add a bitmap file that ends in the middle of the BMPINFOHEADER.
 	
