@@ -2756,6 +2756,9 @@ def generate_questionable_bitmaps() :
         '8bpp-pixels-not-in-palette.bmp',
         bitmap_8bpp_pixelnotinpalette(254, 128))
 
+    # write out the HTML index
+    log.write_index('index.html')
+
 
 
 def generate_corrupt_bitmaps() :
