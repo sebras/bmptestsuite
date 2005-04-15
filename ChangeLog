@@ -1,3 +1,8 @@
+2005-04-15 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Replace occurances of "renderer" with the more generic 
+	"bitmap processor" in doc strings.
+	
 2005-04-11 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Break out the bitmaps into three categories

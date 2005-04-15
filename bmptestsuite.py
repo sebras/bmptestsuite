@@ -704,7 +704,7 @@ class bitmap_8bpp(bitmap) :
 
         # Set the "0" pixel to magenta so we can test the
         # difference between pixels we deliberately set to
-        # black and pixels that the renderer left at 0.
+        # black and pixels that the bitmap processor left at 0.
         self.palette = [
             0x00FF00FF, # magenta
             0x00000000, # black
@@ -825,7 +825,7 @@ class bitmap_8bpp_pixelnotinpalette(bitmap_8bpp) :
 class bitmap_8bpp_nopalette(bitmap_8bpp) :
     """
     A bitmap that has 8 bits per pixel and no palette.
-    This is an invalid bitmap, but a renderer could use default colors.
+    This is an invalid bitmap, but a bitmap processor could use default colors.
     """
 
     def __init__(self, width, height) :
@@ -1232,7 +1232,7 @@ class bitmap_rle8_topdown(bitmap_rle8_encoded) :
     """
     An RLE8 compressed bitmap with a negative height.
     This is an illegal value: top-down images cannot be compressed.
-    However, many renderers allow top-down compressed images.
+    However, many bitmap processors allow top-down compressed images.
     """
 
     def get_height(self) :
@@ -1359,7 +1359,7 @@ class bitmap_4bpp(bitmap) :
 
         # Set the "0" pixel to magenta so we can test the
         # difference between pixels we deliberately set to
-        # black and pixels that the renderer left at 0.
+        # black and pixels that the bitmap processor left at 0.
         self.palette = [
             0x00FF00FF, # magenta
             0x00000000, # black
@@ -1861,7 +1861,7 @@ class bitmap_rle4_topdown(bitmap_rle4_encoded) :
 class bitmap_4bpp_nopalette(bitmap_4bpp) :
     """
     A bitmap that has 4 bit per pixel and no palette.
-    This is an invalid bitmap, but a renderer could use default colors.
+    This is an invalid bitmap, but a bitmap processor could use default colors.
     """
 
     def __init__(self, width, height) :
@@ -1969,7 +1969,7 @@ class bitmap_1bpp_overlappingcolor(bitmap_1bpp) :
 class bitmap_1bpp_nopalette(bitmap_1bpp) :
     """
     A bitmap that has 1 bit per pixel and no palette.
-    This is technically invalid, but a renderer could default to black and white.
+    This is technically invalid, but a bitmap processor could default to black and white.
     """
 
     def __init__(self, width, height) :
@@ -2028,7 +2028,7 @@ class bitmap_directory(bitmap_1bpp) :
 class bitmap_badmagicnumber(bitmap_1bpp) :
     """
     A bitmap with an invalid magic number (it uses 'Bm' instead of 'BM')
-    A renderer that ignores this field is probably trusting the file extension
+    A bitmap processor that ignores this field is probably trusting the file extension
     or doing a case-insensitive compare.
     """
 
@@ -2054,7 +2054,7 @@ class bitmap_croppedmagicnumber(bitmap_1bpp) :
 class bitmap_badfilesize(bitmap_1bpp) :
     """
     A bitmap with a filesize that's half of what it should be.
-    Most renderers ignore this field.
+    Most bitmap processors ignore this field.
     """
 
     def get_filesize(self) :
@@ -2065,7 +2065,7 @@ class bitmap_badfilesize(bitmap_1bpp) :
 class bitmap_zerofilesize(bitmap_1bpp) :
     """
     A bitmap with an filesize of 0.
-    Most renderers ignore this field.
+    Most bitmap processors ignore this field.
     """
 
     def get_filesize(self) :
@@ -2074,7 +2074,7 @@ class bitmap_zerofilesize(bitmap_1bpp) :
 class bitmap_badreserved1(bitmap_1bpp) :
     """
     A bitmap with an 'wReserved1' field that is not 0.
-    This is technically illegal, but most renderers ignore this field.
+    This is technically illegal, but most bitmap processors ignore this field.
     """
 
     def get_reserved1(self) :
@@ -2083,7 +2083,7 @@ class bitmap_badreserved1(bitmap_1bpp) :
 class bitmap_badreserved2(bitmap_1bpp) :
     """
     A bitmap with an 'wReserved2' field that is not 0.
-    This is technically illegal, but most renderers ignore this field.
+    This is technically illegal, but most bitmap processors ignore this field.
     """
 
     def get_reserved2(self) :
@@ -2112,7 +2112,7 @@ class bitmap_largeoffbits(bitmap_1bpp) :
 class bitmap_zerooffbits(bitmap_1bpp) :
     """
     A bitmap with an 'dwOffBits' field that is 0.
-    A renderer may recover from this by assuming that the bitmap data
+    A bitmap processor may recover from this by assuming that the bitmap data
     immediately follows the palette.
     """
 
@@ -2259,7 +2259,7 @@ class bitmap_negativewidth(bitmap_1bpp) :
 class bitmap_zeroplanes(bitmap_1bpp) :
     """
     A bitmap with a 'biPlanes' field in its BMPINFOHEADER that is zero.
-    This is an invalid bitmap, but many renderers ignore this field.
+    This is an invalid bitmap, but many bitmap processors ignore this field.
     """
 
     def get_planes(self) :
@@ -2268,7 +2268,7 @@ class bitmap_zeroplanes(bitmap_1bpp) :
 class bitmap_largeplanes(bitmap_1bpp) :
     """
     A bitmap with a 'biPlanes' field in its BMPINFOHEADER that is large.
-    This is an invalid bitmap, but many renderers ignore this field.
+    This is an invalid bitmap, but many bitmap processors ignore this field.
     """
 
     def get_planes(self) :
@@ -2294,7 +2294,7 @@ class bitmap_zerobitdepth(bitmap_1bpp) :
 class bitmap_largebitdepth(bitmap_1bpp) :
     """
     A bitmap with a 'biBitCount' field in its BMPINFOHEADER that is very large.
-    This attempts to trick the renderer into thinking the bit depth is negative.
+    This attempts to trick the bitmap processor into thinking the bit depth is negative.
     """
 
     def get_bits_per_pixel(self) :
@@ -2330,7 +2330,7 @@ class bitmap_8bpp_rle4compression(bitmap_rle8_encoded) :
 class bitmap_8bpp_zeroxpelspermeter(bitmap_8bpp) :
     """
     An 8 bpp bitmap with a 'biXPelsPerMeter' field of 0.
-    Most renderers ignore this field, but it is most likely used when
+    Most bitmap processors ignore this field, but it is most likely used when
     printing the image.
     """
 
@@ -2341,7 +2341,7 @@ class bitmap_8bpp_zeroxpelspermeter(bitmap_8bpp) :
 class bitmap_8bpp_negativexpelspermeter(bitmap_8bpp) :
     """
     An 8 bpp bitmap with a negative 'biXPelsPerMeter' field.
-    Most renderers ignore this field, but it is most likely used when
+    Most bitmap processors ignore this field, but it is most likely used when
     printing the image.
     """
 
@@ -2352,7 +2352,7 @@ class bitmap_8bpp_negativexpelspermeter(bitmap_8bpp) :
 class bitmap_8bpp_largexpelspermeter(bitmap_8bpp) :
     """
     An 8 bpp bitmap with a large 'biXPelsPerMeter' field.
-    Most renderers ignore this field, but it is most likely used when
+    Most bitmap processors ignore this field, but it is most likely used when
     printing the image.
     """
 
@@ -2364,7 +2364,7 @@ class bitmap_8bpp_largexpelspermeter(bitmap_8bpp) :
 class bitmap_8bpp_zeroypelspermeter(bitmap_8bpp) :
     """
     An 8 bpp bitmap with a 'biYPelsPerMeter' field of 0.
-    Most renderers ignore this field, but it is most likely used when
+    Most bitmap processors ignore this field, but it is most likely used when
     printing the image.
     """
 
@@ -2375,7 +2375,7 @@ class bitmap_8bpp_zeroypelspermeter(bitmap_8bpp) :
 class bitmap_8bpp_negativeypelspermeter(bitmap_8bpp) :
     """
     An 8 bpp bitmap with a negative 'biYPelsPerMeter' field.
-    Most renderers ignore this field, but it is most likely used when
+    Most bitmap processors ignore this field, but it is most likely used when
     printing the image.
     """
 
@@ -2386,7 +2386,7 @@ class bitmap_8bpp_negativeypelspermeter(bitmap_8bpp) :
 class bitmap_8bpp_largeypelspermeter(bitmap_8bpp) :
     """
     An 8 bpp bitmap with a large 'biYPelsPerMeter' field.
-    Most renderers ignore this field, but it is most likely used when
+    Most bitmap processors ignore this field, but it is most likely used when
     printing the image.
     """
 
@@ -2631,12 +2631,12 @@ def generate_valid_bitmaps() :
     log.do_testcase(
         'nofileextension',
         bitmap_24bpp(320, 240),
-        'The filename has no extension.  This tests that the renderer examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
+        'The filename has no extension.  This tests that the bitmap processor examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
 
     log.do_testcase(
         'misleadingextension.jpg',
         bitmap_24bpp(320, 240),
-        'The filename has a "jpg" file extension.  This tests that the renderer examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
+        'The filename has a "jpg" file extension.  This tests that the bitmap processor examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
 
     log.do_testcase(
         '24bpp-imagesize-zero.bmp',
@@ -2645,7 +2645,7 @@ def generate_valid_bitmaps() :
     log.do_testcase(
         ' spaces in  filename.bmp',
         bitmap_24bpp(320, 240),
-        'The filename has spaces in it.  This tests that the renderer properly escapes filenames when it uses a shell command to process bitmaps.')
+        'The filename has spaces in it.  This tests that the bitmap processor properly escapes filenames when it uses a shell command to process bitmaps.')
 
     # valid 32 bpp bitmaps
     log.do_testcase(
