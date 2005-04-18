@@ -2405,6 +2405,107 @@ class bitmap_toomuchdata(bitmap_1bpp) :
         return bitmap_1bpp.create_bitmapdata(self) * 2
 
 
+class bitmap_missingpalette(bitmap_1bpp) :
+    """
+    A bitmap file that is so short that it doesn't include the palette.
+    This tests that what happens a call to fread() fails.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        # don't write any other part of the bitmap
+        bmpfile.close()
+
+class bitmap_croppedpalette(bitmap_1bpp) :
+    """
+    A bitmap that is one byte short of having a complete palette.
+    This tests that what happens when fread() returns fewer bytes
+    than expected.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        palette = self.get_palette()
+
+        # remove the last byte of the BITMAPINFOHEADER
+        content = palette[0 : len(palette) - 1]
+        bmpfile.write(content)
+
+        # don't write any other part of the bitmap
+        bmpfile.close()
+
+class bitmap_missingcolormasks(bitmap_565) :
+    """
+    A BI_BITFIELDS bitmap file that is so short that it doesn't include the
+    colormask array.
+    This tests that what happens a call to fread() fails.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        # don't write any other part of the bitmap
+        bmpfile.close()
+
+class bitmap_croppedcolormasks(bitmap_565) :
+    """
+    A BI_BITFIELDS bitmap that is one byte short of having a complete
+    colormask array.
+    This tests that what happens when fread() returns fewer bytes
+    than expected.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        palette = self.get_palette()
+
+        # remove the last byte of the BITMAPINFOHEADER
+        content = palette[0 : len(palette) - 1]
+        bmpfile.write(content)
+
+        # don't write any other part of the bitmap
+        bmpfile.close()
+
+
 class testcase_logger :
     def __init__(self, path) :
         # a map from filename to English description of the file.
@@ -2902,6 +3003,22 @@ def generate_corrupt_bitmaps() :
     log.do_testcase(
         '32bpp-0x0.bmp',
         bitmap_32bpp(0, 0))
+
+    log.do_testcase(
+        'palette-missing.bmp',
+        bitmap_missingpalette(320, 240))
+
+    log.do_testcase(
+        'palette-cropped.bmp',
+        bitmap_croppedpalette(320, 240))
+
+    log.do_testcase(
+        'colormasks-missing.bmp',
+        bitmap_missingcolormasks(320, 240))
+
+    log.do_testcase(
+        'colormasks-cropped.bmp',
+        bitmap_croppedcolormasks(320, 240))
 
     log.do_testcase(
         'directory.bmp',
