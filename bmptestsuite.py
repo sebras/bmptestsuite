@@ -78,7 +78,7 @@ class bitmap :
         self.width          = width
         self.height         = height
         self.palette        = []
-        self.bitmapdata     = ''
+        self.pixeldata      = ''
 
     # methods that make up the FILEINFOHEADER
     def get_magic_number(self) :
@@ -88,9 +88,9 @@ class bitmap :
         sizeof_fileinfoheader   = self.SIZEOF_FILEINFOHEADER
         sizeof_bitmapinfoheader = self.get_bitmap_info_header_size()
         sizeof_palette          = len(self.get_palette())
-        sizeof_bitmapdata       = len(self.get_bitmapdata())
+        sizeof_pixeldata        = len(self.get_pixeldata())
 
-        return sizeof_fileinfoheader + sizeof_bitmapinfoheader + sizeof_palette + sizeof_bitmapdata
+        return sizeof_fileinfoheader + sizeof_bitmapinfoheader + sizeof_palette + sizeof_pixeldata
 
     def get_reserved1(self) :
         return 0
@@ -157,7 +157,7 @@ class bitmap :
 
     def get_image_size(self) :
         "Return the biSizeImage to put into the BITMAPINFOHEADER"
-        return len(self.get_bitmapdata())
+        return len(self.get_pixeldata())
 
     def get_pixels_per_meter_x(self) :
         "Return the biXPelsPerMeter to put into the BITMAPINFOHEADER"
@@ -219,21 +219,21 @@ class bitmap :
         palette = apply(struct.pack, pack_params)
         return palette
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data"
 
-        raise 'bitmap.create_bitmapdata() should never be called'
+        raise 'bitmap.create_pixeldata() should never be called'
 
-    def get_bitmapdata(self) :
+    def get_pixeldata(self) :
         """
         Creates and caches the bitmap data on the first call.
         Returns the cached value on all subsequent calls.
         """
 
-        if not self.bitmapdata :
-            self.bitmapdata = self.create_bitmapdata()
+        if not self.pixeldata :
+            self.pixeldata = self.create_pixeldata()
 
-        return self.bitmapdata
+        return self.pixeldata
 
 
     def get_scanline_padding_bits(self) :
@@ -334,8 +334,8 @@ class bitmap :
         palette = self.get_palette()
         bmpfile.write(palette)
             
-        bitmapdata = self.get_bitmapdata()
-        bmpfile.write(bitmapdata)
+        pixeldata = self.get_pixeldata()
+        bmpfile.write(pixeldata)
 
         bmpfile.close()
 
@@ -346,7 +346,7 @@ class bitmap_32bpp(bitmap) :
     def __init__(self, width, height) :
         bitmap.__init__(self, 32, width, height)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 32 bpp RGB"
 
         red_width    = self.width / 3
@@ -377,11 +377,11 @@ class bitmap_32bpp(bitmap) :
             struct.pack('<I', 0x00FFFFFF))
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_32bpp_topdown(bitmap_32bpp) :
@@ -466,7 +466,7 @@ class bitmap_32bpp_101110(bitmap) :
         "Return the biClrUsed to put into the BITMAPINFOHEADER"
         return 0
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 32 bpp RGB"
 
         red_width    = self.width / 3
@@ -497,11 +497,11 @@ class bitmap_32bpp_101110(bitmap) :
             struct.pack('<I', 0x7FFFFFFF))
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_24bpp(bitmap) :
@@ -510,7 +510,7 @@ class bitmap_24bpp(bitmap) :
     def __init__(self, width, height) :
         bitmap.__init__(self, 24, width, height)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 24 bpp RGB"
 
         red_width    = self.width / 3
@@ -546,11 +546,11 @@ class bitmap_24bpp(bitmap) :
             '\xFF\xFF\xFF')
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_24bpp_topdown(bitmap_24bpp) :
@@ -579,7 +579,7 @@ class bitmap_555(bitmap) :
     def __init__(self, width, height) :
         bitmap.__init__(self, 16, width, height)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 5-5-5 RGB"
 
         red_width    = self.width / 3
@@ -615,11 +615,11 @@ class bitmap_555(bitmap) :
             '\xFF\xFF')
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 
@@ -644,7 +644,7 @@ class bitmap_565(bitmap) :
         "Return the biClrUsed to put into the BITMAPINFOHEADER"
         return 0
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 5-6-5 RGB"
 
         red_width    = self.width / 3
@@ -680,11 +680,11 @@ class bitmap_565(bitmap) :
             '\xFF\xFF')
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_565_topdown(bitmap_565) :
@@ -720,7 +720,7 @@ class bitmap_8bpp(bitmap) :
         self.INDEX_BLUE    = 4
         self.INDEX_WHITE   = 5
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 8 bpp"
 
         red_width    = self.width / 3
@@ -754,11 +754,11 @@ class bitmap_8bpp(bitmap) :
             chr(self.INDEX_WHITE))
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_8bpp_topdown(bitmap_8bpp) :
@@ -783,7 +783,7 @@ class bitmap_8bpp_pixelnotinpalette(bitmap_8bpp) :
             0x00000000, # black
             0x00FFFFFF] # white
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 8 bpp"
 
         pad_width_in_bytes = self.get_scanline_padding_bits() / 8
@@ -815,11 +815,11 @@ class bitmap_8bpp_pixelnotinpalette(bitmap_8bpp) :
             chr(self.INDEX_WHITE))
 
         # concatenate the rows in the raster image into a flat buffer
-        bitmapdata = ''
+        pixeldata = ''
         for row in raster :
-            bitmapdata += string.join(row, '')
+            pixeldata += string.join(row, '')
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_8bpp_nopalette(bitmap_8bpp) :
@@ -939,7 +939,7 @@ class bitmap_rle8(bitmap_8bpp) :
         "Returns a delta escape sequence"
         return '\x00\x02' + chr(right) + chr(down)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         raise "this should not be called"
 
 
@@ -949,7 +949,7 @@ class bitmap_rle8_encoded(bitmap_rle8) :
     The entire bitmap is in 'encoded mode'.
     """
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 4 bpp"
         
         # widths are in nibbles (pixels)
@@ -980,7 +980,7 @@ class bitmap_rle8_encoded(bitmap_rle8) :
             self.INDEX_BLACK,
             self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         run_length = 0
         prev_pixel = -1
         for row in range(0, len(raster)) :
@@ -993,7 +993,7 @@ class bitmap_rle8_encoded(bitmap_rle8) :
                     # The current run has ended.
 
                     # Write the run and start a new one
-                    bitmapdata += self.create_encoded_run(run_length, prev_pixel)
+                    pixeldata += self.create_encoded_run(run_length, prev_pixel)
 
                     run_length = 0
                     prev_pixel = -1
@@ -1010,18 +1010,18 @@ class bitmap_rle8_encoded(bitmap_rle8) :
 
             # flush the last run
             if run_length != 0 :
-                bitmapdata += self.create_encoded_run(run_length, prev_pixel)
+                pixeldata += self.create_encoded_run(run_length, prev_pixel)
 
                 run_length = 0
                 prev_pixel = -1
 
             # end-of-line
-            bitmapdata += self.create_end_of_line()
+            pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
                         
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_rle8_delta(bitmap_rle8) :
@@ -1037,7 +1037,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
         for i in range(len(self.palette), 256) :
             self.palette.append(0x00CCCCCC)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 8 bpp"
         
         # NOTE: -2 is a special value that means
@@ -1066,7 +1066,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         run_length = 0
         prev_pixel = -1
         for row in range(0, len(raster)) :
@@ -1080,7 +1080,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
                
             if row_is_all_transparent :
                 # the entire row is entirely transparent. Do a delta.
-                bitmapdata += self.create_delta(0, 1)
+                pixeldata += self.create_delta(0, 1)
 
             else:
                 # there are some non-transparent pixels in this row.
@@ -1095,12 +1095,12 @@ class bitmap_rle8_delta(bitmap_rle8) :
                         # Write the run and start a new one
                         if prev_pixel == TRANSPARENT_PIXEL :
                             # this run is encoded as a delta
-                            bitmapdata += self.create_delta(
+                            pixeldata += self.create_delta(
                                 run_length,
                                 0)
                         else :
                             # this run is encoded as a regular run
-                            bitmapdata += self.create_encoded_run(
+                            pixeldata += self.create_encoded_run(
                                 run_length,
                                 prev_pixel)
 
@@ -1125,7 +1125,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
                     # care of that.
                     if prev_pixel != TRANSPARENT_PIXEL :
                         # this run is encoded as a regular run
-                        bitmapdata += self.create_encoded_run(
+                        pixeldata += self.create_encoded_run(
                             run_length,
                             prev_pixel)
 
@@ -1133,12 +1133,12 @@ class bitmap_rle8_delta(bitmap_rle8) :
                     prev_pixel = -1
 
                 # end-of-line
-                bitmapdata += self.create_end_of_line()
+                pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
                         
-        return bitmapdata             
+        return pixeldata             
 
 
 class bitmap_rle8_absolute(bitmap_rle8) :
@@ -1147,7 +1147,7 @@ class bitmap_rle8_absolute(bitmap_rle8) :
     The entire bitmap is in 'absolute mode'.
     """
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as an RLE8 in absolute mode (uncompressed)"
         
         # widths are in bytes (pixels)
@@ -1178,7 +1178,7 @@ class bitmap_rle8_absolute(bitmap_rle8) :
             self.INDEX_BLACK,
             self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         for row in range(0, len(raster)) :
 
             cur_row = raster[row]
@@ -1189,25 +1189,25 @@ class bitmap_rle8_absolute(bitmap_rle8) :
                 if 255 < remaining :
                     # There are more than 255 pixels left in this row.
                     # Encode all 255 pixels.
-                    bitmapdata += self.create_absolute_run(cur_row, col, 255)
+                    pixeldata += self.create_absolute_run(cur_row, col, 255)
                     col += 255
 
                 elif 3 <= remaining :
                     # There are between 3 and 255 pixels left in this row.
                     # Encode them all with absolute encoding.
-                    bitmapdata += self.create_absolute_run(cur_row, col, remaining)
+                    pixeldata += self.create_absolute_run(cur_row, col, remaining)
                     col += remaining
 
                 else :
                     raise 'Unsupported width: %d' % remaining
 
             # end-of-line
-            bitmapdata += self.create_end_of_line()
+            pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_rle8_blank(bitmap_rle8) :
@@ -1222,7 +1222,7 @@ class bitmap_rle8_blank(bitmap_rle8) :
         for i in range(len(self.palette), 256) :
             self.palette.append(0x00CCCCCC)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 8 bpp"
         
         return self.create_end_of_bitmap()
@@ -1249,7 +1249,7 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
     the size of the image.
     """
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 4 bpp"
         
         # widths are in bytes (pixels)
@@ -1280,7 +1280,7 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
             self.INDEX_BLACK,
             self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         run_length = 0
         prev_pixel = -1
         for row in range(0, len(raster)) :
@@ -1293,7 +1293,7 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
                     # The current run has ended.
 
                     # Write the run and start a new one
-                    bitmapdata += self.create_encoded_run(run_length, prev_pixel)
+                    pixeldata += self.create_encoded_run(run_length, prev_pixel)
 
                     run_length = 0
                     prev_pixel = -1
@@ -1310,21 +1310,21 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
 
             # flush the last run
             if run_length != 0 :
-                bitmapdata += self.create_encoded_run(run_length, prev_pixel)
+                pixeldata += self.create_encoded_run(run_length, prev_pixel)
 
                 run_length = 0
                 prev_pixel = -1
 
             # end-of-line
-            bitmapdata += self.create_end_of_line()
+            pixeldata += self.create_end_of_line()
               
         # double the height of the image.
-        bitmapdata *= 2
+        pixeldata *= 2
 
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
                         
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_rle8_deltaleavesimage(bitmap_rle8_encoded) :
@@ -1334,22 +1334,22 @@ class bitmap_rle8_deltaleavesimage(bitmap_rle8_encoded) :
     The intent is to trick the processor into accessing invalid memory.
     """
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 8 bpp"
 
 
         # Tell the image processor to move off of the image
         # before drawing anything.
-        bitmapdata = ''
+        pixeldata = ''
         i = 0
         while i < self.height :
-            bitmapdata += self.create_delta(255, 0)
+            pixeldata += self.create_delta(255, 0)
             i += 255
 
         # draw the image
-        bitmapdata += bitmap_rle8_encoded.create_bitmapdata(self)
+        pixeldata += bitmap_rle8_encoded.create_pixeldata(self)
                         
-        return bitmapdata
+        return pixeldata
 
 class bitmap_4bpp(bitmap) :
     "An uncompressed bitmap that has 4 bits per pixel."
@@ -1375,7 +1375,7 @@ class bitmap_4bpp(bitmap) :
         self.INDEX_BLUE    = 4
         self.INDEX_WHITE   = 5
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 4 bpp"
         
         # widths are in nibbles (pixels)
@@ -1403,7 +1403,7 @@ class bitmap_4bpp(bitmap) :
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         for row in range(0, len(raster)) :
 
             # a closure for helping to add runs to the image
@@ -1427,9 +1427,9 @@ class bitmap_4bpp(bitmap) :
             appender = nibblestream()
             for col in range(0, len(raster[row])) :
                 appender.appendnibble(raster[row][col])
-            bitmapdata += appender.scanline
+            pixeldata += appender.scanline
 
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_4bpp_topdown(bitmap_4bpp) :
@@ -1492,7 +1492,7 @@ class bitmap_rle4(bitmap_4bpp) :
         "Returns a delta escape sequence"
         return '\x00\x02' + chr(down) + chr(right)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         raise "this should not be called"
 
 
@@ -1502,7 +1502,7 @@ class bitmap_rle4_encoded(bitmap_rle4) :
     The entire bitmap is in 'encoded mode'.
     """
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 4 bpp"
         
         # widths are in nibbles (pixels)
@@ -1527,7 +1527,7 @@ class bitmap_rle4_encoded(bitmap_rle4) :
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         run_length = 0
         prev_pixel = -1
         for row in range(0, len(raster)) :
@@ -1540,7 +1540,7 @@ class bitmap_rle4_encoded(bitmap_rle4) :
                     # The current run has ended.
 
                     # Write the run and start a new one
-                    bitmapdata += self.create_encoded_run(run_length, prev_pixel, prev_pixel)
+                    pixeldata += self.create_encoded_run(run_length, prev_pixel, prev_pixel)
 
                     run_length = 0
                     prev_pixel = -1
@@ -1557,18 +1557,18 @@ class bitmap_rle4_encoded(bitmap_rle4) :
 
             # flush the last run
             if run_length != 0 :
-                bitmapdata += self.create_encoded_run(run_length, prev_pixel, prev_pixel)
+                pixeldata += self.create_encoded_run(run_length, prev_pixel, prev_pixel)
 
                 run_length = 0
                 prev_pixel = -1
 
             # end-of-line
-            bitmapdata += self.create_end_of_line()
+            pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
                         
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_rle4_absolute(bitmap_rle4) :
@@ -1577,7 +1577,7 @@ class bitmap_rle4_absolute(bitmap_rle4) :
     The entire bitmap is in 'absolute mode'.
     """
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as RLE4 encoded in 'absolute mode' (uncompressed)"
         
         # widths are in nibbles (pixels)
@@ -1602,7 +1602,7 @@ class bitmap_rle4_absolute(bitmap_rle4) :
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         for row in range(0, len(raster)) :
             
             cur_row = raster[row]
@@ -1613,25 +1613,25 @@ class bitmap_rle4_absolute(bitmap_rle4) :
                 if 255 < remaining :
                     # There are more than 255 pixels left in this row.
                     # Encode all 255 pixels.
-                    bitmapdata += self.create_absolute_run(cur_row, col, 255)
+                    pixeldata += self.create_absolute_run(cur_row, col, 255)
                     col += 255
 
                 elif 3 <= remaining :
                     # There are between 3 and 255 pixels left in this row.
                     # Encode them all with absolute encoding.
-                    bitmapdata += self.create_absolute_run(cur_row, col, remaining)
+                    pixeldata += self.create_absolute_run(cur_row, col, remaining)
                     col += remaining
 
                 else :
                     raise 'Unsupported width: %d' % remaining
 
             # end-of-line
-            bitmapdata += self.create_end_of_line()
+            pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
 
-        return bitmapdata
+        return pixeldata
 
 
 
@@ -1655,7 +1655,7 @@ class bitmap_rle4_alternate(bitmap_rle4) :
             0x00FFFFFF, # white
             0x00FFFFFF] # white
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 4 bpp"
         
         # widths are in nibbles (pixels)
@@ -1680,7 +1680,7 @@ class bitmap_rle4_alternate(bitmap_rle4) :
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, 0, 6)
 
-        bitmapdata = ''
+        pixeldata = ''
         run_length = 0
         prev_pixel = -1
         for row in range(0, len(raster)) :
@@ -1693,7 +1693,7 @@ class bitmap_rle4_alternate(bitmap_rle4) :
                     # The current run has ended.
 
                     # Write the run and start a new one
-                    bitmapdata += self.create_encoded_run(
+                    pixeldata += self.create_encoded_run(
                         run_length,
                         prev_pixel,
                         prev_pixel + 1)
@@ -1713,7 +1713,7 @@ class bitmap_rle4_alternate(bitmap_rle4) :
 
             # flush the last run
             if run_length != 0 :
-                bitmapdata += self.create_encoded_run(
+                pixeldata += self.create_encoded_run(
                     run_length,
                     prev_pixel,
                     prev_pixel + 1)
@@ -1722,12 +1722,12 @@ class bitmap_rle4_alternate(bitmap_rle4) :
                 prev_pixel = -1
 
             # end-of-line
-            bitmapdata += self.create_end_of_line()
+            pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
                         
-        return bitmapdata
+        return pixeldata
 
 
 class bitmap_rle4_delta(bitmap_rle4) :
@@ -1743,7 +1743,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
         for i in range(len(self.palette), 16) :
             self.palette.append(0x00CCCCCC)
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 8 bpp"
         
         # NOTE: -2 is a special value that means
@@ -1772,7 +1772,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
 
-        bitmapdata = ''
+        pixeldata = ''
         run_length = 0
         prev_pixel = -1
         for row in range(0, len(raster)) :
@@ -1786,7 +1786,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
 
             if row_is_all_transparent :
                 # the entire row is entirely transparent. Do a delta.
-                bitmapdata += self.create_delta(0, 1)
+                pixeldata += self.create_delta(0, 1)
 
             else:
                 # there are some non-transparent pixels in this row.
@@ -1801,12 +1801,12 @@ class bitmap_rle4_delta(bitmap_rle4) :
                         # Write the run and start a new one
                         if prev_pixel == TRANSPARENT_PIXEL :
                             # this run is encoded as a delta
-                            bitmapdata += self.create_delta(
+                            pixeldata += self.create_delta(
                                 run_length,
                                 0)
                         else :
                             # this run is encoded as a regular run
-                            bitmapdata += self.create_encoded_run(
+                            pixeldata += self.create_encoded_run(
                                 run_length,
                                 prev_pixel,
                                 prev_pixel)
@@ -1832,7 +1832,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
                     # care of that.
                     if prev_pixel != TRANSPARENT_PIXEL :
                         # this run is encoded as a regular run
-                        bitmapdata += self.create_encoded_run(
+                        pixeldata += self.create_encoded_run(
                             run_length,
                             prev_pixel,
                             prev_pixel)
@@ -1841,12 +1841,12 @@ class bitmap_rle4_delta(bitmap_rle4) :
                     prev_pixel = -1
 
                 # end-of-line
-                bitmapdata += self.create_end_of_line()
+                pixeldata += self.create_end_of_line()
               
         # end-of-bitmap
-        bitmapdata += self.create_end_of_bitmap()
+        pixeldata += self.create_end_of_bitmap()
                         
-        return bitmapdata             
+        return pixeldata             
 
 class bitmap_rle4_topdown(bitmap_rle4_encoded) :
     """
@@ -1881,7 +1881,7 @@ class bitmap_1bpp(bitmap) :
             0x00000000,  # black
             0x00FFFFFF]  # while
 
-    def create_bitmapdata(self) :
+    def create_pixeldata(self) :
         "Return the bitmap data as uncompressed 1 bpp."
         
         # widths are in bits (pixels)
@@ -1910,7 +1910,7 @@ class bitmap_1bpp(bitmap) :
         self.apply_top_left_logo(raster, 0, 1)
 
 
-        bitmapdata = ''
+        pixeldata = ''
         for row in range(0, len(raster)) :
 
             # a closure for helping to add runs to the image
@@ -1934,9 +1934,9 @@ class bitmap_1bpp(bitmap) :
             appender = bitstream()
             for col in range(0, len(raster[row])) :
                 appender.appendbit(raster[row][col])
-            bitmapdata += appender.scanline
+            pixeldata += appender.scanline
 
-        return bitmapdata
+        return pixeldata
 
 class bitmap_1bpp_topdown(bitmap_1bpp) :
     "A 'top down' uncompressed RGB bitmap that has 1 bit per pixel."
@@ -1980,7 +1980,7 @@ class bitmap_1bpp_nopalette(bitmap_1bpp) :
 
 
 class bitmap_1bpp_palettetoobig(bitmap_1bpp) :
-    "A bitmap that has 1 bit per pixel that has a palette with 5000 colors"
+    "A bitmap that has 1 bit per pixel that has a palette with 5000 colors."
 
     def __init__(self, width, height) :
         bitmap_1bpp.__init__(self, width, height)
@@ -2005,7 +2005,7 @@ class bitmap_width_height_overflow(bitmap_565) :
 class bitmap_emptyfile(bitmap_1bpp) :
     """
     A zero-byte file.
-    This tests that what happens when the first fread() fails.
+    This tests that what happens when the first call to fread() fails.
     """
 
     def write(self, filename) :
@@ -2040,7 +2040,8 @@ class bitmap_badmagicnumber(bitmap_1bpp) :
 class bitmap_croppedmagicnumber(bitmap_1bpp) :
     """
     A one byte bitmap that only contains the 'B' of the magic number.
-    This tests that what happens when the first fread() fails.
+    This tests that what happens when the first call to fread() returns
+    fewer bytes than expected.
     """
 
     def write(self, filename) :
@@ -2094,7 +2095,7 @@ class bitmap_negativeoffbits(bitmap_1bpp) :
     A bitmap with an 'dwOffBits' field that is -1.
     This is supposed to be interpreted as an unsigned value, so it will
     either be understood as a very large (illegal) value,
-    or a negative value (also illegal)
+    or a negative value (also illegal).
     """
 
     def get_offset_of_bitmap_data(self) :
@@ -2144,7 +2145,7 @@ class bitmap_croppedfileinfoheader(bitmap_1bpp) :
 class bitmap_missinginfoheader(bitmap_1bpp) :
     """
     A bitmap file that is so short that it doesn't include a BITMAPINFOHEADER.
-    This tests that what happens a call to fread() fails.
+    This tests that what happens when a call to fread() fails.
     """
 
     def write(self, filename) :
@@ -2250,7 +2251,7 @@ class bitmap_zerowidth(bitmap_1bpp) :
 
 class bitmap_negativewidth(bitmap_1bpp) :
     """
-    A bitmap with a 'biWidth' field in its BMPINFOHEADER that is negative.
+    A bitmap with a negative 'biWidth' field in its BMPINFOHEADER.
     """
 
     def get_width(self) :
@@ -2395,20 +2396,11 @@ class bitmap_8bpp_largeypelspermeter(bitmap_8bpp) :
         return sys.maxint
 
 
-class bitmap_toomuchdata(bitmap_1bpp) :
-    """
-    A bitmap with twice as much payload as expected.
-    This attempts to overflow an internal buffer.
-    """
-
-    def create_bitmapdata(self) :
-        return bitmap_1bpp.create_bitmapdata(self) * 2
-
 
 class bitmap_missingpalette(bitmap_1bpp) :
     """
     A bitmap file that is so short that it doesn't include the palette.
-    This tests that what happens a call to fread() fails.
+    This tests that what happens when a call to fread() fails.
     """
 
     def write(self, filename) :
@@ -2458,7 +2450,7 @@ class bitmap_missingcolormasks(bitmap_565) :
     """
     A BI_BITFIELDS bitmap file that is so short that it doesn't include the
     colormask array.
-    This tests that what happens a call to fread() fails.
+    This tests that what happens when a call to fread() fails.
     """
 
     def write(self, filename) :
@@ -2504,6 +2496,71 @@ class bitmap_croppedcolormasks(bitmap_565) :
 
         # don't write any other part of the bitmap
         bmpfile.close()
+
+
+class bitmap_missingpixeldata(bitmap_24bpp) :
+    """
+    A bitmap file that doesn't include any of the pixel data.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        palette = self.get_palette()
+        bmpfile.write(palette)
+
+        # don't write any other part of the bitmap
+        bmpfile.close()
+
+class bitmap_croppedpixeldata(bitmap_24bpp) :
+    """
+    A bitmap file that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
+
+    def write(self, filename) :
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        palette = self.get_palette()
+        bmpfile.write(palette)
+            
+        # crop the pixel data roughly in half
+        # really, crop it in the middle of a scanline
+        pixeldata = self.get_pixeldata()
+        crop_point = len(pixeldata) / 2 - (self.width * 3) / 2 - 1
+        content = pixeldata[0 : crop_point]
+        bmpfile.write(content)
+
+        bmpfile.close()
+
+class bitmap_toomuchdata(bitmap_1bpp) :
+    """
+    A bitmap with twice as much payload as expected.
+    This attempts to overflow an internal buffer.
+    """
+
+    def create_pixeldata(self) :
+        return bitmap_1bpp.create_pixeldata(self) * 2
 
 
 class testcase_logger :
@@ -2846,16 +2903,31 @@ def generate_questionable_bitmaps() :
         bitmap_8bpp_largeypelspermeter(320, 240))
 
     log.do_testcase(
-        'toomuchdata.bmp',
+        'pixeldata-toomuch.bmp',
         bitmap_toomuchdata(320, 240))
 
     log.do_testcase(
-        'rle8-toomuchdata.bmp',
+        'pixeldata-rle8-toomuch.bmp',
         bitmap_rle8_toomuchdata(320, 240))
 
     log.do_testcase(
         '8bpp-pixels-not-in-palette.bmp',
         bitmap_8bpp_pixelnotinpalette(254, 128))
+
+    log.do_testcase(
+        '32bpp-0x0.bmp',
+        bitmap_32bpp(0, 0),
+        'The image is 0 pixels wide and 0 pixels high.  Even though this is technically valid, most bitmap procesors consider it to be corrupt.')
+
+    log.do_testcase(
+        '32bpp-320x0.bmp',
+        bitmap_32bpp(320, 0),
+        'The image is 320 pixels wide and zero pixels high.  This is a sneaky way of making a 0x0 bitmap.  Even though this is technically valid, most bitmap procesors consider it to be corrupt.')
+
+    log.do_testcase(
+        '32bpp-0x240.bmp',
+        bitmap_32bpp(0, 240),
+        'The image is 0 pixels wide and 240 pixels high.  This is a sneaky way of making a 0x0 bitmap.  Even though this is technically valid, most bitmap procesors consider it to be corrupt.')
 
     # write out the HTML index
     log.write_index('index.html')
@@ -3001,10 +3073,6 @@ def generate_corrupt_bitmaps() :
         bitmap_8bpp_nopalette(320, 240))
 
     log.do_testcase(
-        '32bpp-0x0.bmp',
-        bitmap_32bpp(0, 0))
-
-    log.do_testcase(
         'palette-missing.bmp',
         bitmap_missingpalette(320, 240))
 
@@ -3019,6 +3087,14 @@ def generate_corrupt_bitmaps() :
     log.do_testcase(
         'colormasks-cropped.bmp',
         bitmap_croppedcolormasks(320, 240))
+
+    log.do_testcase(
+        'pixeldata-missing.bmp',
+        bitmap_missingpixeldata(320, 240))
+
+    log.do_testcase(
+        'pixeldata-cropped.bmp',
+        bitmap_croppedpixeldata(320, 240))
 
     log.do_testcase(
         'directory.bmp',

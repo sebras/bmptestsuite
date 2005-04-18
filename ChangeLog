@@ -1,4 +1,11 @@
 2005-04-15 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
+	Fix typos in doc strings.
+	Move the 0x0 bitmaps to the "questionable" category.
+	Add test cases for when the pixel data is cropped/missing.
+	Rename variables from "bitmapdata" to "pixeldata".  I think that "pixel" data is clearer.
+	
+2005-04-15 David Costanzo <david_costanzo@yahoo.com>
 	* README
 	Update for the 0.8 release.
 	* Makefile
