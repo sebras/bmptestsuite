@@ -15,6 +15,7 @@ SRCS += bmptestsuite.py
 SRCS += COPYING
 SRCS += ChangeLog
 SRCS += README
+SRCS += TODO
 
 all : bitmaps.timestamp
 
@@ -51,6 +52,7 @@ release-binary : $(BINARY_RELEASES)
 	cp --recursive bitmaps $(RELEASE_NAME)
 	cp COPYING $(RELEASE_NAME)
 	cp README  $(RELEASE_NAME)
+	cp TODO    $(TODO)
 	$(TAR) -cj -f $(RELEASE_NAME).tar.bz2 $(RELEASE_NAME)
 	$(TAR) -cz -f $(RELEASE_NAME).tar.gz  $(RELEASE_NAME)
 	$(ZIP) $(RELEASE_NAME).zip $(RELEASE_NAME)
