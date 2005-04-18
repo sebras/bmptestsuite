@@ -2579,6 +2579,7 @@ class testcase_logger :
         _safe_unlink(index_filename)
         indexfile = file(index_filename, 'wb')
 
+        indexfile.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
         indexfile.write('<html>\n')
         indexfile.write('  <head>\n')
         indexfile.write('    <title>Directory Listing</title>\n')
