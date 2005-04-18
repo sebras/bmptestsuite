@@ -4,6 +4,7 @@
 	Move the 0x0 bitmaps to the "questionable" category.
 	Add test cases for when the pixel data is cropped/missing.
 	Rename variables from "bitmapdata" to "pixeldata".  I think that "pixel" data is clearer.
+	Add a DOCTYPE directive to the HTML which the test logger class generates.
 	
 2005-04-15 David Costanzo <david_costanzo@yahoo.com>
 	* README
