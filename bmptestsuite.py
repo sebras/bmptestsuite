@@ -2795,7 +2795,7 @@ def generate_valid_bitmaps() :
     log.do_testcase(
         'misleadingextension.jpg',
         bitmap_24bpp(320, 240),
-        'The filename has a "jpg" file extension.  This tests that the bitmap processor examines the file to determine if its a bitmap, instead of blindly trusting the file extension.')
+        'The filename has a "jpg" file extension.  This tests that the bitmap processor examines the file to determine if it is a bitmap, instead of blindly trusting the file extension.')
 
     log.do_testcase(
         '24bpp-imagesize-zero.bmp',
