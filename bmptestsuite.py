@@ -1495,16 +1495,9 @@ class bitmap_rle4(bitmap_4bpp) :
     def create_pixeldata(self) :
         raise "this should not be called"
 
+    def create_raster(self) :
+        "Returns a rasterized version of the 4bpp canonical image"
 
-class bitmap_rle4_encoded(bitmap_rle4) :
-    """
-    A simple run-length encoded bitmap that has 4 bits per pixel.
-    The entire bitmap is in 'encoded mode'.
-    """
-
-    def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
-        
         # widths are in nibbles (pixels)
         red_width   = self.width / 3
         green_width = self.width / 3
@@ -1526,6 +1519,20 @@ class bitmap_rle4_encoded(bitmap_rle4) :
 
         # add in the TOP_LEFT_LOGO
         self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+
+        return raster
+
+
+class bitmap_rle4_encoded(bitmap_rle4) :
+    """
+    A simple run-length encoded bitmap that has 4 bits per pixel.
+    The entire bitmap is in 'encoded mode'.
+    """
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as run-length encoded 4 bpp"
+
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -1564,10 +1571,10 @@ class bitmap_rle4_encoded(bitmap_rle4) :
 
             # end-of-line
             pixeldata += self.create_end_of_line()
-              
+
         # end-of-bitmap
         pixeldata += self.create_end_of_bitmap()
-                        
+
         return pixeldata
 
 
@@ -1579,29 +1586,8 @@ class bitmap_rle4_absolute(bitmap_rle4) :
 
     def create_pixeldata(self) :
         "Return the bitmap data as RLE4 encoded in 'absolute mode' (uncompressed)"
+        raster = self.create_raster()
         
-        # widths are in nibbles (pixels)
-        red_width   = self.width / 3
-        green_width = self.width / 3
-        blue_width  = self.width - (red_width + green_width)
-
-        # draw the pattern
-        raster = []
-        for i in range(0, self.height) :
-
-            row = []
-            row += [self.INDEX_RED]   * red_width
-            row += [self.INDEX_GREEN] * green_width
-            row += [self.INDEX_BLUE]  * blue_width
-
-            raster.append(row)
-
-        # draw a border
-        self.draw_double_border(raster, self.INDEX_BLACK, self.INDEX_WHITE)
-
-        # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
-
         pixeldata = ''
         for row in range(0, len(raster)) :
             
@@ -1852,10 +1838,141 @@ class bitmap_rle4_topdown(bitmap_rle4_encoded) :
     """
     An RLE4 compressed bitmap with a negative height.
     This is an illegal bitmap: top-down images cannot be compressed.
+    Still, many bitmap processors can understand it.
     """
 
     def get_height(self) :
         return -self.height
+
+
+class bitmap_rle4_noendofline(bitmap_rle4_encoded) :
+    """
+    An RLE4 compressed bitmap with no end-of-line sequences.
+    It is unclear of a bitmap processor should implicitly add
+    end-of-line markers when the pixel run the row's width,
+    or if it should ignore all pixel data beyond the row's width.
+    """
+
+    def create_end_of_line(self) :
+        return ''
+
+class bitmap_rle4_noendofbitmap(bitmap_rle4_encoded) :
+    """
+    An RLE4 compressed bitmap with no end-of-bitmap sequence.
+    This is techinically invalid, but the bitmap processor should
+    be able to treat the end-of-file as an end-of-bitmap.
+    """
+
+    def create_end_of_bitmap(self) :
+        return ''
+
+
+class bitmap_rle4_croppedrun(bitmap_rle4) :
+    """
+    A simple run-length encoded bitmap that has 4 bits per pixel.
+    The entire bitmap is in 'encoded mode'.
+    The pixel data ends prematurely--in the middle of an encoded
+    escape sequence.
+    """
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as run-length encoded 4 bpp"
+        
+        raster = self.create_raster()
+
+        pixeldata = ''
+        run_length = 0
+        prev_pixel = -1
+        for row in range(0, len(raster) / 2) :
+            for col in range(0, len(raster[row])) :
+                
+                cur_pixel = raster[row][col]
+
+                if run_length == 255 or (run_length != 0 and prev_pixel != cur_pixel) :
+                    # There's no more room on this run OR
+                    # The current run has ended.
+
+                    # Write the run and start a new one
+                    pixeldata += self.create_encoded_run(run_length, prev_pixel, prev_pixel)
+
+                    run_length = 0
+                    prev_pixel = -1
+
+
+                if run_length == 0 :
+                    # start a new run
+                    prev_pixel = cur_pixel
+                    run_length = 1
+
+                elif prev_pixel == raster[row][col] :
+                    # continue this run
+                    run_length += 1
+
+            # flush the last run
+            if run_length != 0 :
+                pixeldata += self.create_encoded_run(run_length, prev_pixel, prev_pixel)
+
+                run_length = 0
+                prev_pixel = -1
+
+            # end-of-line
+            pixeldata += self.create_end_of_line()
+              
+        # append the cropped run
+        last_run = self.create_encoded_run(100, 1, 2)
+        cropped_run = last_run[0 : len(last_run) - 1]
+        pixeldata += cropped_run
+                        
+        return pixeldata
+
+class bitmap_rle4_croppedabsolute(bitmap_rle4) :
+    """
+    A simple run-length encoded bitmap that has 4 bits per pixel.
+    The entire bitmap is in 'absolute mode'.
+    The pixel data ends prematurely--in the middle of an absolute
+    escape sequence.
+    """
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as RLE4 encoded in 'absolute mode' (uncompressed)"
+        raster = self.create_raster()
+        
+        pixeldata = ''
+        for row in range(0, len(raster)) :
+            
+            cur_row = raster[row]
+
+            col = 0
+            while col < len(cur_row) :
+                remaining = len(cur_row) - col
+                if 255 < remaining :
+                    # There are more than 255 pixels left in this row.
+                    # Encode all 255 pixels.
+                    absolute_run = self.create_absolute_run(cur_row, col, 255)
+                    col += 255
+
+                elif 3 <= remaining :
+                    # There are between 3 and 255 pixels left in this row.
+                    # Encode them all with absolute encoding.
+                    absolute_run = self.create_absolute_run(cur_row, col, remaining)
+                    col += remaining
+
+                else :
+                    raise 'Unsupported width: %d' % remaining
+
+                if len(raster) / 2 <= row :
+                    # crop this encoding and return
+                    cropped_run = absolute_run[0 : len(absolute_run) - 1]
+                    pixeldata += cropped_run
+                    return pixeldata
+
+                # append this encoding and keep processing the current row
+                pixeldata += absolute_run
+
+            # end-of-line
+            pixeldata += self.create_end_of_line()
+
+        return pixeldata
 
 
 class bitmap_4bpp_nopalette(bitmap_4bpp) :
@@ -2930,6 +3047,10 @@ def generate_questionable_bitmaps() :
         bitmap_32bpp(0, 240),
         'The image is 0 pixels wide and 240 pixels high.  This is a sneaky way of making a 0x0 bitmap.  Even though this is technically valid, most bitmap procesors consider it to be corrupt.')
 
+    log.do_testcase(
+        'rle4-no-end-of-bitmap-marker.bmp',
+        bitmap_rle4_noendofbitmap(320, 240))
+
     # write out the HTML index
     log.write_index('index.html')
 
@@ -3096,6 +3217,18 @@ def generate_corrupt_bitmaps() :
     log.do_testcase(
         'pixeldata-cropped.bmp',
         bitmap_croppedpixeldata(320, 240))
+
+    log.do_testcase(
+        'rle4-runlength-cropped.bmp',
+        bitmap_rle4_croppedrun(320, 240))
+
+    log.do_testcase(
+        'rle4-absolute-cropped.bmp',
+        bitmap_rle4_croppedabsolute(320, 240))
+
+    log.do_testcase(
+        'rle4-no-end-of-line-marker.bmp',
+        bitmap_rle4_noendofline(320, 240))
 
     log.do_testcase(
         'directory.bmp',
