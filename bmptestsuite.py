@@ -1832,7 +1832,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
         # end-of-bitmap
         pixeldata += self.create_end_of_bitmap()
                         
-        return pixeldata             
+        return pixeldata
 
 class bitmap_rle4_topdown(bitmap_rle4_encoded) :
     """
@@ -1972,6 +1972,135 @@ class bitmap_rle4_croppedabsolute(bitmap_rle4) :
             # end-of-line
             pixeldata += self.create_end_of_line()
 
+        return pixeldata
+
+class bitmap_rle4_croppeddelta(bitmap_rle4) :
+    """
+    A simple run-length encoded bitmap that has 4 bits per pixel.
+    The bitmap uses 'delta escapes'.
+    The file ends in the middle of a delta escape.
+    """
+
+    def __init__(self, width, height) :
+        bitmap_rle4.__init__(self, width, height)
+
+        # fill the rest of the palette with grey
+        for i in range(len(self.palette), 16) :
+            self.palette.append(0x00CCCCCC)
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as run-length encoded 8 bpp"
+        
+        # NOTE: -2 is a special value that means
+        #       "use a delta to skip beyond this pixel"
+        TRANSPARENT_PIXEL = -2
+
+        # widths are in bytes (pixels)
+        red_width   = self.width / 3
+        green_width = self.width / 3
+        blue_width  = self.width - (red_width + green_width)
+
+        # draw the pattern
+        raster = []
+        for i in range(0, self.height) :
+
+            row = []
+            row += [self.INDEX_RED]    * red_width
+            row += [TRANSPARENT_PIXEL] * green_width
+            row += [self.INDEX_BLUE]   * blue_width
+
+            raster.append(row)
+
+        # draw an invisible border
+        self.draw_double_border(raster, TRANSPARENT_PIXEL, TRANSPARENT_PIXEL)
+
+        # add in the TOP_LEFT_LOGO
+        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+
+        pixeldata = ''
+        run_length = 0
+        prev_pixel = -1
+        for row in range(0, len(raster)) :
+
+            # check if the row contains nothing but transparent pixels
+            row_is_all_transparent = 1
+            for col in range(0, len(raster[row])) :
+                if raster[row][col] != TRANSPARENT_PIXEL :
+                    row_is_all_transparent = 0
+                    break
+
+            if row_is_all_transparent :
+                # the entire row is entirely transparent. Do a delta.
+                pixeldata += self.create_delta(0, 1)
+
+            else:
+                # there are some non-transparent pixels in this row.
+                for col in range(0, len(raster[row])) :
+
+                    cur_pixel = raster[row][col]
+
+                    if run_length == 255 or (run_length != 0 and prev_pixel != cur_pixel) :
+                        # There's no more room on this run OR
+                        # The current run has ended.
+
+                        # Write the run and start a new one
+                        if prev_pixel == TRANSPARENT_PIXEL :
+                            # this run is encoded as a delta
+                            delta = self.create_delta(
+                                run_length,
+                                0)
+
+                            if len(raster) / 2 <= row :
+                                # we are half-way through the image.
+                                # crop the delta and return what we have
+                                cropped_delta = delta[0 : len(delta) - 1]
+                                pixeldata += cropped_delta
+                                return pixeldata
+                                
+                            pixeldata += delta
+
+                        else :
+                            # this run is encoded as a regular run
+                            pixeldata += self.create_encoded_run(
+                                run_length,
+                                prev_pixel,
+                                prev_pixel)
+
+                        run_length = 0
+                        prev_pixel = -1
+
+
+                    if run_length == 0 :
+                        # start a new run
+                        prev_pixel = cur_pixel
+                        run_length = 1
+
+                    elif prev_pixel == raster[row][col] :
+                        # continue this run
+                        run_length += 1
+
+                # flush the last run
+                if run_length != 0 :
+
+                    # We don't have to write a delta for transparent
+                    # pixels because the end-of-line marker will take
+                    # care of that.
+                    if prev_pixel != TRANSPARENT_PIXEL :
+                        # this run is encoded as a regular run
+                        pixeldata += self.create_encoded_run(
+                            run_length,
+                            prev_pixel,
+                            prev_pixel)
+
+                    run_length = 0
+                    prev_pixel = -1
+
+                # end-of-line
+                pixeldata += self.create_end_of_line()
+              
+        # end-of-bitmap
+        pixeldata += self.create_end_of_bitmap()
+                        
         return pixeldata
 
 
@@ -3225,6 +3354,10 @@ def generate_corrupt_bitmaps() :
     log.do_testcase(
         'rle4-absolute-cropped.bmp',
         bitmap_rle4_croppedabsolute(320, 240))
+
+    log.do_testcase(
+        'rle4-delta-cropped.bmp',
+        bitmap_rle4_croppeddelta(320, 240))
 
     log.do_testcase(
         'rle4-no-end-of-line-marker.bmp',
