@@ -325,6 +325,7 @@ class bitmap :
 
 
     def write(self, filename) :
+        "Write the bitmap out to a file"
 
         _safe_unlink(filename)
         
@@ -341,6 +342,34 @@ class bitmap :
             
         pixeldata = self.get_pixeldata()
         bmpfile.write(pixeldata)
+
+        bmpfile.close()
+
+    def write_croppped_bitmap(self, filename) :
+        """
+        Write the bitmap out to a file, but end the file short in the
+        middle of scaneline.
+        """
+
+        _safe_unlink(filename)
+        
+        bmpfile = file(filename, 'wb')
+
+        fileinfoheader = self.get_fileinfoheader()
+        bmpfile.write(fileinfoheader)
+
+        bmpinfoheader = self.get_bitmapinfoheader()
+        bmpfile.write(bmpinfoheader)
+
+        palette = self.get_palette()
+        bmpfile.write(palette)
+            
+        # crop the pixel data roughly in half
+        # really, crop it in the middle of a scanline
+        pixeldata = self.get_pixeldata()
+        crop_point = len(pixeldata) / 2 - (self.width * self.bits_per_pixel / 8) / 2 - 1
+        content = pixeldata[0 : crop_point]
+        bmpfile.write(content)
 
         bmpfile.close()
 
@@ -515,6 +544,16 @@ class bitmap_32bpp_101110(bitmap) :
 
         return pixeldata
 
+class bitmap_32bpp_croppedpixeldata(bitmap_32bpp) :
+    """
+    A 32 bpp bitmap that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
+
+    def write(self, filename) :
+        self.write_croppped_bitmap(filename)
 
 class bitmap_24bpp(bitmap) :
     "An uncompressed bitmap with 24 bits per pixel. "
@@ -584,6 +623,16 @@ class bitmap_24bpp_zeroimagesize(bitmap_24bpp) :
         "Return the biSizeImage to put into the BITMAPINFOHEADER"
         return 0
 
+class bitmap_24bpp_croppedpixeldata(bitmap_24bpp) :
+    """
+    A 24 bpp bitmap that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
+
+    def write(self, filename) :
+        self.write_croppped_bitmap(filename)
 
 class bitmap_555(bitmap) :
     "A bitmap that is 5-5-5 uncompressed RGB"
@@ -634,7 +683,16 @@ class bitmap_555(bitmap) :
         return pixeldata
 
 
+class bitmap_555_croppedpixeldata(bitmap_555) :
+    """
+    A 5-5-5 16 bpp bitmap that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
 
+    def write(self, filename) :
+        self.write_croppped_bitmap(filename)
 
 class bitmap_565(bitmap) :
     "A bitmap that is 5-6-5 uncompressed RGB"
@@ -907,6 +965,17 @@ class bitmap_8bpp_negativecolorsimportant(bitmap_8bpp) :
     """
     def get_colors_used(self) :
         return -1000
+
+class bitmap_8bpp_croppedpixeldata(bitmap_8bpp) :
+    """
+    An 8 bpp bitmap that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
+
+    def write(self, filename) :
+        self.write_croppped_bitmap(filename)
 
 class bitmap_rle8(bitmap_8bpp) :
     "A base class for RLE8 bitmaps that implements some helpers routines."
@@ -1652,6 +1721,18 @@ class bitmap_4bpp_topdown(bitmap_4bpp) :
     def get_height(self) :
         # a negative value makes a bitmap top-down
         return -self.height
+
+class bitmap_4bpp_croppedpixeldata(bitmap_4bpp) :
+    """
+    An 4 bpp bitmap that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
+
+    def write(self, filename) :
+        self.write_croppped_bitmap(filename)
+
 
 class bitmap_rle4(bitmap_4bpp) :
     "A base class for RLE4 bitmaps that implements some helpers routines."
@@ -2433,6 +2514,18 @@ class bitmap_1bpp_palettetoobig(bitmap_1bpp) :
         for i in range(0,5000) :
             self.palette.append(i)
 
+class bitmap_1bpp_croppedpixeldata(bitmap_1bpp) :
+    """
+    A 1 bpp bitmap that ends in the middle of the pixel data.
+    This tests that what happens when a call to fread() fails.
+    This bitmap processor should probably process the data that
+    it does have AND display a diagnostic.
+    """
+
+    def write(self, filename) :
+        self.write_croppped_bitmap(filename)
+
+
 class bitmap_width_height_overflow(bitmap_565) :
     """
     A bitmap whose reported width and height cause a 32bit overflow when
@@ -2964,38 +3057,6 @@ class bitmap_missingpixeldata(bitmap_24bpp) :
         bmpfile.write(palette)
 
         # don't write any other part of the bitmap
-        bmpfile.close()
-
-class bitmap_croppedpixeldata(bitmap_24bpp) :
-    """
-    A bitmap file that ends in the middle of the pixel data.
-    This tests that what happens when a call to fread() fails.
-    This bitmap processor should probably process the data that
-    it does have AND display a diagnostic.
-    """
-
-    def write(self, filename) :
-
-        _safe_unlink(filename)
-        
-        bmpfile = file(filename, 'wb')
-
-        fileinfoheader = self.get_fileinfoheader()
-        bmpfile.write(fileinfoheader)
-
-        bmpinfoheader = self.get_bitmapinfoheader()
-        bmpfile.write(bmpinfoheader)
-
-        palette = self.get_palette()
-        bmpfile.write(palette)
-            
-        # crop the pixel data roughly in half
-        # really, crop it in the middle of a scanline
-        pixeldata = self.get_pixeldata()
-        crop_point = len(pixeldata) / 2 - (self.width * 3) / 2 - 1
-        content = pixeldata[0 : crop_point]
-        bmpfile.write(content)
-
         bmpfile.close()
 
 class bitmap_toomuchdata(bitmap_1bpp) :
@@ -3547,8 +3608,28 @@ def generate_corrupt_bitmaps() :
         bitmap_missingpixeldata(320, 240))
 
     log.do_testcase(
-        'pixeldata-cropped.bmp',
-        bitmap_croppedpixeldata(320, 240))
+        '32bpp-pixeldata-cropped.bmp',
+        bitmap_32bpp_croppedpixeldata(320, 240))
+
+    log.do_testcase(
+        '24bpp-pixeldata-cropped.bmp',
+        bitmap_24bpp_croppedpixeldata(320, 240))
+
+    log.do_testcase(
+        '555-pixeldata-cropped.bmp',
+        bitmap_555_croppedpixeldata(320, 240))
+
+    log.do_testcase(
+        '8bpp-pixeldata-cropped.bmp',
+        bitmap_8bpp_croppedpixeldata(320, 240))
+
+    log.do_testcase(
+        '4bpp-pixeldata-cropped.bmp',
+        bitmap_4bpp_croppedpixeldata(320, 240))
+
+    log.do_testcase(
+        '1bpp-pixeldata-cropped.bmp',
+        bitmap_1bpp_croppedpixeldata(320, 240))
 
     log.do_testcase(
         'rle4-runlength-cropped.bmp',

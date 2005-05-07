@@ -1,5 +1,10 @@
 2005-05-05 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
+	Add "cropped pixel data" bitmaps for all bitdepths, since each bitdepth
+	is likely to be implemented as a separate function.
+	
+2005-05-05 David Costanzo <david_costanzo@yahoo.com>
+	* bmptestsuite.py
 	Code cleanup
 
 2005-05-05 David Costanzo <david_costanzo@yahoo.com>
