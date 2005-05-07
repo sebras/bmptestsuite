@@ -942,17 +942,10 @@ class bitmap_rle8(bitmap_8bpp) :
     def create_pixeldata(self) :
         raise "this should not be called"
 
-
-class bitmap_rle8_encoded(bitmap_rle8) :
-    """
-    A simple run-length encoded bitmap that has 8 bits per pixel.
-    The entire bitmap is in 'encoded mode'.
-    """
-
-    def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
+    def create_raster(self) :
+        "Returns a rasterized version of the 8bpp canonical image"
         
-        # widths are in nibbles (pixels)
+        # widths are in bytes (pixels)
         red_width   = self.width / 3
         green_width = self.width / 3
         blue_width  = self.width - (red_width + green_width)
@@ -979,6 +972,20 @@ class bitmap_rle8_encoded(bitmap_rle8) :
             raster,
             self.INDEX_BLACK,
             self.INDEX_WHITE)
+
+        return raster
+
+
+class bitmap_rle8_encoded(bitmap_rle8) :
+    """
+    A simple run-length encoded bitmap that has 8 bits per pixel.
+    The entire bitmap is in 'encoded mode'.
+    """
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as run-length encoded 4 bpp"
+        
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -1150,33 +1157,7 @@ class bitmap_rle8_absolute(bitmap_rle8) :
     def create_pixeldata(self) :
         "Return the bitmap data as an RLE8 in absolute mode (uncompressed)"
         
-        # widths are in bytes (pixels)
-        red_width   = self.width / 3
-        green_width = self.width / 3
-        blue_width  = self.width - (red_width + green_width)
-
-        # draw the pattern
-        raster = []
-        for i in range(0, self.height) :
-
-            row = []
-            row += [self.INDEX_RED]   * red_width
-            row += [self.INDEX_GREEN] * green_width
-            row += [self.INDEX_BLUE]  * blue_width
-
-            raster.append(row)
-
-        # draw a border
-        self.draw_double_border(
-            raster,
-            self.INDEX_BLACK,
-            self.INDEX_WHITE)
-
-        # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(
-            raster,
-            self.INDEX_BLACK,
-            self.INDEX_WHITE)
+        raster = self.create_raster()
 
         pixeldata = ''
         for row in range(0, len(raster)) :
@@ -1219,6 +1200,8 @@ class bitmap_rle8_blank(bitmap_rle8) :
         bitmap_rle8.__init__(self, width, height)
 
         # fill the rest of the palette with grey
+        # so that we can see the difference between uninitialized
+        # memory and pixels that should be unspecified.
         for i in range(len(self.palette), 256) :
             self.palette.append(0x00CCCCCC)
 
@@ -1226,6 +1209,17 @@ class bitmap_rle8_blank(bitmap_rle8) :
         "Return the bitmap data as run-length encoded 8 bpp"
         
         return self.create_end_of_bitmap()
+
+
+class bitmap_rle8_noendofbitmap(bitmap_rle8_encoded) :
+    """
+    An RLE8 compressed bitmap with no end-of-bitmap sequence.
+    This is techinically invalid, but the bitmap processor should
+    be able to treat the end-of-file as an end-of-bitmap.
+    """
+
+    def create_end_of_bitmap(self) :
+        return ''
 
 
 class bitmap_rle8_topdown(bitmap_rle8_encoded) :
@@ -1250,35 +1244,9 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
+        "Return the bitmap data as run-length encoded in 8 bpp"
         
-        # widths are in bytes (pixels)
-        red_width   = self.width / 3
-        green_width = self.width / 3
-        blue_width  = self.width - (red_width + green_width)
-
-        # draw the pattern
-        raster = []
-        for i in range(0, self.height) :
-
-            row = []
-            row += [self.INDEX_RED]   * red_width
-            row += [self.INDEX_GREEN] * green_width
-            row += [self.INDEX_BLUE]  * blue_width
-
-            raster.append(row)
-
-        # draw a border
-        self.draw_double_border(
-            raster,
-            self.INDEX_BLACK,
-            self.INDEX_WHITE)
-
-        # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(
-            raster,
-            self.INDEX_BLACK,
-            self.INDEX_WHITE)
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -1337,7 +1305,6 @@ class bitmap_rle8_deltaleavesimage(bitmap_rle8_encoded) :
     def create_pixeldata(self) :
         "Return the bitmap data as run-length encoded 8 bpp"
 
-
         # Tell the image processor to move off of the image
         # before drawing anything.
         pixeldata = ''
@@ -1350,6 +1317,257 @@ class bitmap_rle8_deltaleavesimage(bitmap_rle8_encoded) :
         pixeldata += bitmap_rle8_encoded.create_pixeldata(self)
                         
         return pixeldata
+
+
+class bitmap_rle8_croppedrun(bitmap_rle8) :
+    """
+    A simple run-length encoded bitmap that has 8 bits per pixel.
+    The entire bitmap is in 'encoded mode'.
+    The pixel data ends prematurely--in the middle of an encoded
+    escape sequence.
+    """
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as run-length encoded 8 bpp"
+        
+        raster = self.create_raster()
+
+        pixeldata = ''
+        run_length = 0
+        prev_pixel = -1
+        for row in range(0, len(raster) / 2) :
+            for col in range(0, len(raster[row])) :
+                
+                cur_pixel = raster[row][col]
+
+                if run_length == 255 or (run_length != 0 and prev_pixel != cur_pixel) :
+                    # There's no more room on this run OR
+                    # The current run has ended.
+
+                    # Write the run and start a new one
+                    pixeldata += self.create_encoded_run(run_length, prev_pixel)
+
+                    run_length = 0
+                    prev_pixel = -1
+
+
+                if run_length == 0 :
+                    # start a new run
+                    prev_pixel = cur_pixel
+                    run_length = 1
+
+                elif prev_pixel == raster[row][col] :
+                    # continue this run
+                    run_length += 1
+
+            # flush the last run
+            if run_length != 0 :
+                pixeldata += self.create_encoded_run(run_length, prev_pixel)
+
+                run_length = 0
+                prev_pixel = -1
+
+            # end-of-line
+            pixeldata += self.create_end_of_line()
+              
+        # append the cropped run
+        last_run = self.create_encoded_run(100, 2)
+        cropped_run = last_run[0 : len(last_run) - 1]
+        pixeldata += cropped_run
+                        
+        return pixeldata
+
+
+class bitmap_rle8_croppedabsolute(bitmap_rle8) :
+    """
+    A simple run-length encoded bitmap that has 8 bits per pixel.
+    The entire bitmap is in 'absolute mode'.
+    The pixel data ends prematurely--in the middle of an absolute
+    escape sequence.
+    """
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as RLE8 encoded in 'absolute mode' (uncompressed)"
+        raster = self.create_raster()
+        
+        pixeldata = ''
+        for row in range(0, len(raster)) :
+            
+            cur_row = raster[row]
+
+            col = 0
+            while col < len(cur_row) :
+                remaining = len(cur_row) - col
+                if 255 < remaining :
+                    # There are more than 255 pixels left in this row.
+                    # Encode all 255 pixels.
+                    absolute_run = self.create_absolute_run(cur_row, col, 255)
+                    col += 255
+
+                elif 3 <= remaining :
+                    # There are between 3 and 255 pixels left in this row.
+                    # Encode them all with absolute encoding.
+                    absolute_run = self.create_absolute_run(cur_row, col, remaining)
+                    col += remaining
+
+                else :
+                    raise 'Unsupported width: %d' % remaining
+
+                if len(raster) / 2 <= row :
+                    # crop this encoding and return
+                    cropped_run = absolute_run[0 : len(absolute_run) - 1]
+                    pixeldata += cropped_run
+                    return pixeldata
+
+                # append this encoding and keep processing the current row
+                pixeldata += absolute_run
+
+            # end-of-line
+            pixeldata += self.create_end_of_line()
+
+        return pixeldata
+
+class bitmap_rle8_croppeddelta(bitmap_rle8) :
+    """
+    A simple run-length encoded bitmap that has 8 bits per pixel.
+    The bitmap uses 'delta escapes'.
+    The file ends in the middle of a delta escape.
+    """
+
+    def __init__(self, width, height) :
+        bitmap_rle8.__init__(self, width, height)
+
+        # fill the rest of the palette with grey
+        # so that we can see the difference between uninitialized
+        # memory and pixels that should be unspecified.
+        for i in range(len(self.palette), 256) :
+            self.palette.append(0x00CCCCCC)
+
+    def create_pixeldata(self) :
+        "Return the bitmap data as run-length encoded 8 bpp"
+        
+        # NOTE: -2 is a special value that means
+        #       "use a delta to skip beyond this pixel"
+        TRANSPARENT_PIXEL = -2
+
+        # widths are in bytes (pixels)
+        red_width   = self.width / 3
+        green_width = self.width / 3
+        blue_width  = self.width - (red_width + green_width)
+
+        # draw the pattern
+        raster = []
+        for i in range(0, self.height) :
+
+            row = []
+            row += [self.INDEX_RED]    * red_width
+            row += [TRANSPARENT_PIXEL] * green_width
+            row += [self.INDEX_BLUE]   * blue_width
+
+            raster.append(row)
+
+        # draw an invisible border
+        self.draw_double_border(raster, TRANSPARENT_PIXEL, TRANSPARENT_PIXEL)
+
+        # add in the TOP_LEFT_LOGO
+        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+
+        pixeldata = ''
+        run_length = 0
+        prev_pixel = -1
+        for row in range(0, len(raster)) :
+
+            # check if the row contains nothing but transparent pixels
+            row_is_all_transparent = 1
+            for col in range(0, len(raster[row])) :
+                if raster[row][col] != TRANSPARENT_PIXEL :
+                    row_is_all_transparent = 0
+                    break
+
+            if row_is_all_transparent :
+                # the entire row is entirely transparent. Do a delta.
+                pixeldata += self.create_delta(0, 1)
+
+            else:
+                # there are some non-transparent pixels in this row.
+                for col in range(0, len(raster[row])) :
+
+                    cur_pixel = raster[row][col]
+
+                    if run_length == 255 or (run_length != 0 and prev_pixel != cur_pixel) :
+                        # There's no more room on this run OR
+                        # The current run has ended.
+
+                        # Write the run and start a new one
+                        if prev_pixel == TRANSPARENT_PIXEL :
+                            # this run is encoded as a delta
+                            delta = self.create_delta(
+                                run_length,
+                                0)
+
+                            if len(raster) / 2 <= row :
+                                # we are half-way through the image.
+                                # crop the delta and return what we have
+                                cropped_delta = delta[0 : len(delta) - 1]
+                                pixeldata += cropped_delta
+                                return pixeldata
+                                
+                            pixeldata += delta
+
+                        else :
+                            # this run is encoded as a regular run
+                            pixeldata += self.create_encoded_run(
+                                run_length,
+                                prev_pixel)
+
+                        run_length = 0
+                        prev_pixel = -1
+
+
+                    if run_length == 0 :
+                        # start a new run
+                        prev_pixel = cur_pixel
+                        run_length = 1
+
+                    elif prev_pixel == raster[row][col] :
+                        # continue this run
+                        run_length += 1
+
+                # flush the last run
+                if run_length != 0 :
+
+                    # We don't have to write a delta for transparent
+                    # pixels because the end-of-line marker will take
+                    # care of that.
+                    if prev_pixel != TRANSPARENT_PIXEL :
+                        # this run is encoded as a regular run
+                        pixeldata += self.create_encoded_run(
+                            run_length,
+                            prev_pixel)
+
+                    run_length = 0
+                    prev_pixel = -1
+
+                # end-of-line
+                pixeldata += self.create_end_of_line()
+              
+        # end-of-bitmap
+        pixeldata += self.create_end_of_bitmap()
+                        
+        return pixeldata
+
+
+class bitmap_rle8_noendofline(bitmap_rle8_encoded) :
+    """
+    An RLE8 compressed bitmap with no end-of-line sequences.
+    It is unclear if a bitmap processor should implicitly add
+    end-of-line markers when the pixel run the row's width,
+    or if it should ignore all pixel data beyond the row's width.
+    """
+
+    def create_end_of_line(self) :
+        return ''
+
 
 class bitmap_4bpp(bitmap) :
     "An uncompressed bitmap that has 4 bits per pixel."
@@ -1726,6 +1944,8 @@ class bitmap_rle4_delta(bitmap_rle4) :
         bitmap_rle4.__init__(self, width, height)
 
         # fill the rest of the palette with grey
+        # so that we can see the difference between uninitialized
+        # memory and pixels that should be unspecified.
         for i in range(len(self.palette), 16) :
             self.palette.append(0x00CCCCCC)
 
@@ -1848,7 +2068,7 @@ class bitmap_rle4_topdown(bitmap_rle4_encoded) :
 class bitmap_rle4_noendofline(bitmap_rle4_encoded) :
     """
     An RLE4 compressed bitmap with no end-of-line sequences.
-    It is unclear of a bitmap processor should implicitly add
+    It is unclear if a bitmap processor should implicitly add
     end-of-line markers when the pixel run the row's width,
     or if it should ignore all pixel data beyond the row's width.
     """
@@ -1985,11 +2205,13 @@ class bitmap_rle4_croppeddelta(bitmap_rle4) :
         bitmap_rle4.__init__(self, width, height)
 
         # fill the rest of the palette with grey
+        # so that we can see the difference between uninitialized
+        # memory and pixels that should be unspecified.
         for i in range(len(self.palette), 16) :
             self.palette.append(0x00CCCCCC)
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
+        "Return the bitmap data as run-length encoded 4 bpp"
         
         # NOTE: -2 is a special value that means
         #       "use a delta to skip beyond this pixel"
@@ -3158,6 +3380,10 @@ def generate_questionable_bitmaps() :
         bitmap_rle8_toomuchdata(320, 240))
 
     log.do_testcase(
+        'rle8-no-end-of-bitmap-marker.bmp',
+        bitmap_rle8_noendofbitmap(320, 240))
+
+    log.do_testcase(
         '8bpp-pixels-not-in-palette.bmp',
         bitmap_8bpp_pixelnotinpalette(254, 128))
 
@@ -3362,6 +3588,22 @@ def generate_corrupt_bitmaps() :
     log.do_testcase(
         'rle4-no-end-of-line-marker.bmp',
         bitmap_rle4_noendofline(320, 240))
+
+    log.do_testcase(
+        'rle8-runlength-cropped.bmp',
+        bitmap_rle8_croppedrun(320, 240))
+
+    log.do_testcase(
+        'rle8-absolute-cropped.bmp',
+        bitmap_rle8_croppedabsolute(320, 240))
+
+    log.do_testcase(
+        'rle8-delta-cropped.bmp',
+        bitmap_rle8_croppeddelta(320, 240))
+
+    log.do_testcase(
+        'rle8-no-end-of-line-marker.bmp',
+        bitmap_rle8_noendofline(320, 240))
 
     log.do_testcase(
         'directory.bmp',
