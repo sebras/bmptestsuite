@@ -27,7 +27,7 @@ import string
 import sys
 
 def _safe_create_dir(dirname) :
-    "creates a directory named dirname, if it doesn't already exist"
+    "Create a directory named dirname, if it doesn't already exist"
     try :
         os.stat(dirname)
 
@@ -39,7 +39,7 @@ def _safe_create_dir(dirname) :
 
 
 def _safe_unlink(filename) :
-    "removes a file if it exists"
+    "Remove a file if it exists"
     try :
         os.unlink(filename)
 
@@ -209,7 +209,7 @@ class bitmap :
         return bitmapinfoheader
 
     def get_palette(self) :
-        "Returns the palette for bit depths <= 8"
+        "Return the palette for bit depths <= 8"
 
         # Generate the packed palette from self.palette
         # This will be the empty string if self.palette == []
@@ -220,14 +220,19 @@ class bitmap :
         return palette
 
     def create_pixeldata(self) :
-        "Return the bitmap data"
+        "Return the pixel data"
+
+        raise 'bitmap.create_pixeldata() should never be called'
+
+    def create_raster(self) :
+        "Return the image as a raster"
 
         raise 'bitmap.create_pixeldata() should never be called'
 
     def get_pixeldata(self) :
         """
-        Creates and caches the bitmap data on the first call.
-        Returns the cached value on all subsequent calls.
+        Create and cache the pixel data on the first call.
+        Return the cached value on all subsequent calls.
         """
 
         if not self.pixeldata :
@@ -282,7 +287,7 @@ class bitmap :
 
 
     def draw_double_border(self, image, outer_value, inner_value) :
-        "Draws two borders around the image"
+        "Draw two single-pixel borders around the image"
 
         # image must be at least 5 x 5 to draw the border
         if 5 <= self.height and 5 <= self.width :
@@ -346,8 +351,8 @@ class bitmap_32bpp(bitmap) :
     def __init__(self, width, height) :
         bitmap.__init__(self, 32, width, height)
 
-    def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 32 bpp RGB"
+    def create_raster(self) :
+        "Return the rasterized form of the canonical image in 32 bpp"
 
         red_width    = self.width / 3
         green_width  = self.width / 3
@@ -375,6 +380,13 @@ class bitmap_32bpp(bitmap) :
             raster,
             struct.pack('<I', 0x00000000),
             struct.pack('<I', 0x00FFFFFF))
+
+        return raster
+
+    def create_pixeldata(self) :
+        "Return the pixel data as uncompressed 32 bpp RGB"
+
+        raster = self.create_raster()
 
         # concatenate the rows in the raster image into a flat buffer
         pixeldata = ''
@@ -467,7 +479,7 @@ class bitmap_32bpp_101110(bitmap) :
         return 0
 
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 32 bpp RGB"
+        "Return the pixel data as uncompressed 32 bpp RGB"
 
         red_width    = self.width / 3
         green_width  = self.width / 3
@@ -511,7 +523,7 @@ class bitmap_24bpp(bitmap) :
         bitmap.__init__(self, 24, width, height)
 
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 24 bpp RGB"
+        "Return the pixel data as uncompressed 24 bpp RGB"
 
         red_width    = self.width / 3
         green_width  = self.width / 3
@@ -580,7 +592,7 @@ class bitmap_555(bitmap) :
         bitmap.__init__(self, 16, width, height)
 
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 5-5-5 RGB"
+        "Return the pixel data as uncompressed 5-5-5 RGB"
 
         red_width    = self.width / 3
         green_width  = self.width / 3
@@ -645,7 +657,7 @@ class bitmap_565(bitmap) :
         return 0
 
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 5-6-5 RGB"
+        "Return the pixel data as uncompressed 5-6-5 RGB"
 
         red_width    = self.width / 3
         green_width  = self.width / 3
@@ -720,8 +732,12 @@ class bitmap_8bpp(bitmap) :
         self.INDEX_BLUE    = 4
         self.INDEX_WHITE   = 5
 
+        # TRANSPARENT_PIXEL is a special value that means
+        # "use a delta to skip beyond this pixel"
+        self.TRANSPARENT_PIXEL = -2
+
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 8 bpp"
+        "Return the pixel data as uncompressed 8 bpp"
 
         red_width    = self.width / 3
         green_width  = self.width / 3
@@ -784,7 +800,7 @@ class bitmap_8bpp_pixelnotinpalette(bitmap_8bpp) :
             0x00FFFFFF] # white
 
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 8 bpp"
+        "Return the pixel data as uncompressed 8 bpp"
 
         pad_width_in_bytes = self.get_scanline_padding_bits() / 8
 
@@ -900,7 +916,7 @@ class bitmap_rle8(bitmap_8bpp) :
         return self.BI_RLE8
 
     def create_absolute_run(self, row, offset, length) :
-        "Returns the 'absolute mode' encoding of a run of pixels"
+        "Return the 'absolute mode' encoding of a run of pixels"
         
         if length < 3 :
             raise 'bad length: %d' % length
@@ -924,26 +940,26 @@ class bitmap_rle8(bitmap_8bpp) :
         return encoded_run
 
     def create_encoded_run(self, run_length, pixel) :
-        "Returns the 'encoded mode' encoding of a run of pixels"
+        "Return the 'encoded mode' encoding of a run of pixels"
         return chr(run_length) + chr(pixel)
 
     def create_end_of_line(self) :
-        "Returns the end-of-line escape sequence"
+        "Return the end-of-line escape sequence"
         return '\x00\x00'
 
     def create_end_of_bitmap(self) :
-        "Returns the end-of-bitmap escape sequence"
+        "Return the end-of-bitmap escape sequence"
         return '\x00\x01'
 
     def create_delta(self, right, down) :
-        "Returns a delta escape sequence"
+        "Return a delta escape sequence"
         return '\x00\x02' + chr(right) + chr(down)
 
     def create_pixeldata(self) :
         raise "this should not be called"
 
     def create_raster(self) :
-        "Returns a rasterized version of the 8bpp canonical image"
+        "Return a rasterized version of the 8bpp canonical image"
         
         # widths are in bytes (pixels)
         red_width   = self.width / 3
@@ -983,7 +999,7 @@ class bitmap_rle8_encoded(bitmap_rle8) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
+        "Return the pixel data as run-length encoded 4 bpp"
         
         raster = self.create_raster()
 
@@ -1044,13 +1060,9 @@ class bitmap_rle8_delta(bitmap_rle8) :
         for i in range(len(self.palette), 256) :
             self.palette.append(0x00CCCCCC)
 
-    def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
+    def create_raster(self) :
+        "Return a rastersized form of a bitmap that is good for making deltas"
         
-        # NOTE: -2 is a special value that means
-        #       "use a delta to skip beyond this pixel"
-        TRANSPARENT_PIXEL = -2
-
         # widths are in bytes (pixels)
         red_width   = self.width / 3
         green_width = self.width / 3
@@ -1061,17 +1073,30 @@ class bitmap_rle8_delta(bitmap_rle8) :
         for i in range(0, self.height) :
 
             row = []
-            row += [self.INDEX_RED]    * red_width
-            row += [TRANSPARENT_PIXEL] * green_width
-            row += [self.INDEX_BLUE]   * blue_width
+            row += [self.INDEX_RED]         * red_width
+            row += [self.TRANSPARENT_PIXEL] * green_width
+            row += [self.INDEX_BLUE]        * blue_width
 
             raster.append(row)
 
         # draw an invisible border
-        self.draw_double_border(raster, TRANSPARENT_PIXEL, TRANSPARENT_PIXEL)
+        self.draw_double_border(
+            raster,
+            self.TRANSPARENT_PIXEL,
+            self.TRANSPARENT_PIXEL)
 
         # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+        self.apply_top_left_logo(
+            raster,
+            self.INDEX_BLACK,
+            self.INDEX_WHITE)
+
+        return raster
+
+    def create_pixeldata(self) :
+        "Return the pixel data as run-length encoded 8 bpp"
+
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -1081,7 +1106,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
             # check if the row contains nothing but transparent pixels
             row_is_all_transparent = 1
             for col in range(0, len(raster[row])) :
-                if raster[row][col] != TRANSPARENT_PIXEL :
+                if raster[row][col] != self.TRANSPARENT_PIXEL :
                     row_is_all_transparent = 0
                     break
                
@@ -1100,7 +1125,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
                         # The current run has ended.
 
                         # Write the run and start a new one
-                        if prev_pixel == TRANSPARENT_PIXEL :
+                        if prev_pixel == self.TRANSPARENT_PIXEL :
                             # this run is encoded as a delta
                             pixeldata += self.create_delta(
                                 run_length,
@@ -1130,7 +1155,7 @@ class bitmap_rle8_delta(bitmap_rle8) :
                     # We don't have to write a delta for transparent
                     # pixels because the end-of-line marker will take
                     # care of that.
-                    if prev_pixel != TRANSPARENT_PIXEL :
+                    if prev_pixel != self.TRANSPARENT_PIXEL :
                         # this run is encoded as a regular run
                         pixeldata += self.create_encoded_run(
                             run_length,
@@ -1155,7 +1180,7 @@ class bitmap_rle8_absolute(bitmap_rle8) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as an RLE8 in absolute mode (uncompressed)"
+        "Return the pixel data as an RLE8 in absolute mode (uncompressed)"
         
         raster = self.create_raster()
 
@@ -1206,7 +1231,7 @@ class bitmap_rle8_blank(bitmap_rle8) :
             self.palette.append(0x00CCCCCC)
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
+        "Return the pixel data as run-length encoded 8 bpp"
         
         return self.create_end_of_bitmap()
 
@@ -1244,7 +1269,7 @@ class bitmap_rle8_toomuchdata(bitmap_rle8_encoded) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded in 8 bpp"
+        "Return the pixel data as run-length encoded in 8 bpp"
         
         raster = self.create_raster()
 
@@ -1303,7 +1328,7 @@ class bitmap_rle8_deltaleavesimage(bitmap_rle8_encoded) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
+        "Return the pixel data as run-length encoded 8 bpp"
 
         # Tell the image processor to move off of the image
         # before drawing anything.
@@ -1328,7 +1353,7 @@ class bitmap_rle8_croppedrun(bitmap_rle8) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
+        "Return the pixel data as run-length encoded 8 bpp"
         
         raster = self.create_raster()
 
@@ -1387,7 +1412,7 @@ class bitmap_rle8_croppedabsolute(bitmap_rle8) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as RLE8 encoded in 'absolute mode' (uncompressed)"
+        "Return the pixel data as RLE8 encoded in 'absolute mode' (uncompressed)"
         raster = self.create_raster()
         
         pixeldata = ''
@@ -1427,50 +1452,17 @@ class bitmap_rle8_croppedabsolute(bitmap_rle8) :
 
         return pixeldata
 
-class bitmap_rle8_croppeddelta(bitmap_rle8) :
+class bitmap_rle8_croppeddelta(bitmap_rle8_delta) :
     """
     A simple run-length encoded bitmap that has 8 bits per pixel.
     The bitmap uses 'delta escapes'.
     The file ends in the middle of a delta escape.
     """
 
-    def __init__(self, width, height) :
-        bitmap_rle8.__init__(self, width, height)
-
-        # fill the rest of the palette with grey
-        # so that we can see the difference between uninitialized
-        # memory and pixels that should be unspecified.
-        for i in range(len(self.palette), 256) :
-            self.palette.append(0x00CCCCCC)
-
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
+        "Return the pixel data as run-length encoded 8 bpp"
         
-        # NOTE: -2 is a special value that means
-        #       "use a delta to skip beyond this pixel"
-        TRANSPARENT_PIXEL = -2
-
-        # widths are in bytes (pixels)
-        red_width   = self.width / 3
-        green_width = self.width / 3
-        blue_width  = self.width - (red_width + green_width)
-
-        # draw the pattern
-        raster = []
-        for i in range(0, self.height) :
-
-            row = []
-            row += [self.INDEX_RED]    * red_width
-            row += [TRANSPARENT_PIXEL] * green_width
-            row += [self.INDEX_BLUE]   * blue_width
-
-            raster.append(row)
-
-        # draw an invisible border
-        self.draw_double_border(raster, TRANSPARENT_PIXEL, TRANSPARENT_PIXEL)
-
-        # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -1480,7 +1472,7 @@ class bitmap_rle8_croppeddelta(bitmap_rle8) :
             # check if the row contains nothing but transparent pixels
             row_is_all_transparent = 1
             for col in range(0, len(raster[row])) :
-                if raster[row][col] != TRANSPARENT_PIXEL :
+                if raster[row][col] != self.TRANSPARENT_PIXEL :
                     row_is_all_transparent = 0
                     break
 
@@ -1499,7 +1491,7 @@ class bitmap_rle8_croppeddelta(bitmap_rle8) :
                         # The current run has ended.
 
                         # Write the run and start a new one
-                        if prev_pixel == TRANSPARENT_PIXEL :
+                        if prev_pixel == self.TRANSPARENT_PIXEL :
                             # this run is encoded as a delta
                             delta = self.create_delta(
                                 run_length,
@@ -1539,7 +1531,7 @@ class bitmap_rle8_croppeddelta(bitmap_rle8) :
                     # We don't have to write a delta for transparent
                     # pixels because the end-of-line marker will take
                     # care of that.
-                    if prev_pixel != TRANSPARENT_PIXEL :
+                    if prev_pixel != self.TRANSPARENT_PIXEL :
                         # this run is encoded as a regular run
                         pixeldata += self.create_encoded_run(
                             run_length,
@@ -1550,7 +1542,7 @@ class bitmap_rle8_croppeddelta(bitmap_rle8) :
 
                 # end-of-line
                 pixeldata += self.create_end_of_line()
-              
+
         # end-of-bitmap
         pixeldata += self.create_end_of_bitmap()
                         
@@ -1593,8 +1585,12 @@ class bitmap_4bpp(bitmap) :
         self.INDEX_BLUE    = 4
         self.INDEX_WHITE   = 5
 
+        # TRANSPARENT_PIXEL is a special value that means
+        # "use a delta to skip beyond this pixel"
+        self.TRANSPARENT_PIXEL = -2
+
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 4 bpp"
+        "Return the pixel data as uncompressed 4 bpp"
         
         # widths are in nibbles (pixels)
         red_width   = self.width / 3
@@ -1665,7 +1661,7 @@ class bitmap_rle4(bitmap_4bpp) :
         return self.BI_RLE4
 
     def create_absolute_run(self, row, offset, length) :
-        "Returns the 'absolute mode' encoding of a run of pixels"
+        "Return the 'absolute mode' encoding of a run of pixels"
         
         if length < 3 :
             raise 'bad length: %d' % length
@@ -1695,26 +1691,26 @@ class bitmap_rle4(bitmap_4bpp) :
         return encoded_run
 
     def create_encoded_run(self, run_length, pixel1, pixel2) :
-        "Returns the 'encoded mode' encoding of a run of pixels"
+        "Return the 'encoded mode' encoding of a run of pixels"
         return chr(run_length) + chr((pixel1 << 4) | pixel2)
 
     def create_end_of_line(self) :
-        "Returns the end-of-line escape sequence"
+        "Return the end-of-line escape sequence"
         return '\x00\x00'
 
     def create_end_of_bitmap(self) :
-        "Returns the end-of-bitmap escape sequence"
+        "Return the end-of-bitmap escape sequence"
         return '\x00\x01'
 
     def create_delta(self, down, right) :
-        "Returns a delta escape sequence"
+        "Return a delta escape sequence"
         return '\x00\x02' + chr(down) + chr(right)
 
     def create_pixeldata(self) :
         raise "this should not be called"
 
     def create_raster(self) :
-        "Returns a rasterized version of the 4bpp canonical image"
+        "Return a rasterized version of the 4bpp canonical image"
 
         # widths are in nibbles (pixels)
         red_width   = self.width / 3
@@ -1748,7 +1744,7 @@ class bitmap_rle4_encoded(bitmap_rle4) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
+        "Return the pixel data as run-length encoded 4 bpp"
 
         raster = self.create_raster()
 
@@ -1803,7 +1799,8 @@ class bitmap_rle4_absolute(bitmap_rle4) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as RLE4 encoded in 'absolute mode' (uncompressed)"
+        "Return the pixel data as RLE4 encoded in 'absolute mode' (uncompressed)"
+
         raster = self.create_raster()
         
         pixeldata = ''
@@ -1860,7 +1857,7 @@ class bitmap_rle4_alternate(bitmap_rle4) :
             0x00FFFFFF] # white
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
+        "Return the pixel data as run-length encoded 4 bpp"
         
         # widths are in nibbles (pixels)
         red_width   = self.width / 3
@@ -1949,12 +1946,8 @@ class bitmap_rle4_delta(bitmap_rle4) :
         for i in range(len(self.palette), 16) :
             self.palette.append(0x00CCCCCC)
 
-    def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 8 bpp"
-        
-        # NOTE: -2 is a special value that means
-        #       "use a delta to skip beyond this pixel"
-        TRANSPARENT_PIXEL = -2
+    def create_raster(self) :
+        "Return a raster that is suitable for creating an RLE image with deltas"
 
         # widths are in bytes (pixels)
         red_width   = self.width / 3
@@ -1966,17 +1959,31 @@ class bitmap_rle4_delta(bitmap_rle4) :
         for i in range(0, self.height) :
 
             row = []
-            row += [self.INDEX_RED]    * red_width
-            row += [TRANSPARENT_PIXEL] * green_width
-            row += [self.INDEX_BLUE]   * blue_width
+            row += [self.INDEX_RED]         * red_width
+            row += [self.TRANSPARENT_PIXEL] * green_width
+            row += [self.INDEX_BLUE]        * blue_width
 
             raster.append(row)
 
         # draw an invisible border
-        self.draw_double_border(raster, TRANSPARENT_PIXEL, TRANSPARENT_PIXEL)
+        self.draw_double_border(
+            raster,
+            self.TRANSPARENT_PIXEL,
+            self.TRANSPARENT_PIXEL)
 
         # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+        self.apply_top_left_logo(
+            raster,
+            self.INDEX_BLACK,
+            self.INDEX_WHITE)
+
+        return raster
+
+
+    def create_pixeldata(self) :
+        "Return the pixel data as run-length encoded 8 bpp"
+        
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -1986,7 +1993,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
             # check if the row contains nothing but transparent pixels
             row_is_all_transparent = 1
             for col in range(0, len(raster[row])) :
-                if raster[row][col] != TRANSPARENT_PIXEL :
+                if raster[row][col] != self.TRANSPARENT_PIXEL :
                     row_is_all_transparent = 0
                     break
 
@@ -2005,7 +2012,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
                         # The current run has ended.
 
                         # Write the run and start a new one
-                        if prev_pixel == TRANSPARENT_PIXEL :
+                        if prev_pixel == self.TRANSPARENT_PIXEL :
                             # this run is encoded as a delta
                             pixeldata += self.create_delta(
                                 run_length,
@@ -2036,7 +2043,7 @@ class bitmap_rle4_delta(bitmap_rle4) :
                     # We don't have to write a delta for transparent
                     # pixels because the end-of-line marker will take
                     # care of that.
-                    if prev_pixel != TRANSPARENT_PIXEL :
+                    if prev_pixel != self.TRANSPARENT_PIXEL :
                         # this run is encoded as a regular run
                         pixeldata += self.create_encoded_run(
                             run_length,
@@ -2096,7 +2103,7 @@ class bitmap_rle4_croppedrun(bitmap_rle4) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
+        "Return the pixel data as run-length encoded 4 bpp"
         
         raster = self.create_raster()
 
@@ -2154,7 +2161,7 @@ class bitmap_rle4_croppedabsolute(bitmap_rle4) :
     """
 
     def create_pixeldata(self) :
-        "Return the bitmap data as RLE4 encoded in 'absolute mode' (uncompressed)"
+        "Return the pixel data as RLE4 encoded in 'absolute mode' (uncompressed)"
         raster = self.create_raster()
         
         pixeldata = ''
@@ -2194,50 +2201,20 @@ class bitmap_rle4_croppedabsolute(bitmap_rle4) :
 
         return pixeldata
 
-class bitmap_rle4_croppeddelta(bitmap_rle4) :
+class bitmap_rle4_croppeddelta(bitmap_rle4_delta) :
     """
     A simple run-length encoded bitmap that has 4 bits per pixel.
     The bitmap uses 'delta escapes'.
     The file ends in the middle of a delta escape.
     """
 
-    def __init__(self, width, height) :
-        bitmap_rle4.__init__(self, width, height)
-
-        # fill the rest of the palette with grey
-        # so that we can see the difference between uninitialized
-        # memory and pixels that should be unspecified.
-        for i in range(len(self.palette), 16) :
-            self.palette.append(0x00CCCCCC)
-
     def create_pixeldata(self) :
-        "Return the bitmap data as run-length encoded 4 bpp"
-        
-        # NOTE: -2 is a special value that means
-        #       "use a delta to skip beyond this pixel"
-        TRANSPARENT_PIXEL = -2
+        """
+        Return the pixel data as run-length encoded 4 bpp that ends in the
+        middle of a delta escape sequence
+        """
 
-        # widths are in bytes (pixels)
-        red_width   = self.width / 3
-        green_width = self.width / 3
-        blue_width  = self.width - (red_width + green_width)
-
-        # draw the pattern
-        raster = []
-        for i in range(0, self.height) :
-
-            row = []
-            row += [self.INDEX_RED]    * red_width
-            row += [TRANSPARENT_PIXEL] * green_width
-            row += [self.INDEX_BLUE]   * blue_width
-
-            raster.append(row)
-
-        # draw an invisible border
-        self.draw_double_border(raster, TRANSPARENT_PIXEL, TRANSPARENT_PIXEL)
-
-        # add in the TOP_LEFT_LOGO
-        self.apply_top_left_logo(raster, self.INDEX_BLACK, self.INDEX_WHITE)
+        raster = self.create_raster()
 
         pixeldata = ''
         run_length = 0
@@ -2247,7 +2224,7 @@ class bitmap_rle4_croppeddelta(bitmap_rle4) :
             # check if the row contains nothing but transparent pixels
             row_is_all_transparent = 1
             for col in range(0, len(raster[row])) :
-                if raster[row][col] != TRANSPARENT_PIXEL :
+                if raster[row][col] != self.TRANSPARENT_PIXEL :
                     row_is_all_transparent = 0
                     break
 
@@ -2266,7 +2243,7 @@ class bitmap_rle4_croppeddelta(bitmap_rle4) :
                         # The current run has ended.
 
                         # Write the run and start a new one
-                        if prev_pixel == TRANSPARENT_PIXEL :
+                        if prev_pixel == self.TRANSPARENT_PIXEL :
                             # this run is encoded as a delta
                             delta = self.create_delta(
                                 run_length,
@@ -2307,7 +2284,7 @@ class bitmap_rle4_croppeddelta(bitmap_rle4) :
                     # We don't have to write a delta for transparent
                     # pixels because the end-of-line marker will take
                     # care of that.
-                    if prev_pixel != TRANSPARENT_PIXEL :
+                    if prev_pixel != self.TRANSPARENT_PIXEL :
                         # this run is encoded as a regular run
                         pixeldata += self.create_encoded_run(
                             run_length,
@@ -2347,10 +2324,10 @@ class bitmap_1bpp(bitmap) :
 
         self.palette = [
             0x00000000,  # black
-            0x00FFFFFF]  # while
+            0x00FFFFFF]  # white
 
     def create_pixeldata(self) :
-        "Return the bitmap data as uncompressed 1 bpp."
+        "Return the pixel data as uncompressed 1 bpp."
         
         # widths are in bits (pixels)
         stripe1_width = self.width / 3
@@ -2581,7 +2558,7 @@ class bitmap_largeoffbits(bitmap_1bpp) :
 class bitmap_zerooffbits(bitmap_1bpp) :
     """
     A bitmap with an 'dwOffBits' field that is 0.
-    A bitmap processor may recover from this by assuming that the bitmap data
+    A bitmap processor may recover from this by assuming that the pixel data
     immediately follows the palette.
     """
 
