@@ -1,4 +1,12 @@
 2005-05-05 David Costanzo <david_costanzo@yahoo.com>
+	* Makefile
+	Bump the version to 0.9
+	* TODO
+	Remove the items that I have completed (EOFs in RLE escape sequences)
+	* README
+	Bump the version to 0.9
+	
+2005-05-05 David Costanzo <david_costanzo@yahoo.com>
 	* bmptestsuite.py
 	Add "cropped pixel data" bitmaps for all bitdepths, since each bitdepth
 	is likely to be implemented as a separate function.
