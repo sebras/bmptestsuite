@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python2.7
 #######################################################################
 # The author disclaims all copyrights associated with this code (hereafter
 # referred to as the "Work").
@@ -70,8 +70,8 @@ class bitmap :
     BI_RLE8      = 1
     BI_RLE4      = 2
     BI_BITFIELDS = 3
-    BI_JPEG 	 = 4
-    BI_JPEG 	 = 5
+    BI_JPEG      = 4
+    BI_JPEG      = 5
 
     def __init__(self, bits_per_pixel, width, height) :
         self.bits_per_pixel = bits_per_pixel
@@ -931,7 +931,7 @@ class bitmap_8bpp_largecolorsused(bitmap_8bpp) :
     This attempts to trick the bitmap processor into accessing invalid memory.
     """
     def get_colors_used(self) :
-        return sys.maxint
+        return 2**31-1
 
 class bitmap_8bpp_negativecolorsused(bitmap_8bpp) :
     """
@@ -940,7 +940,7 @@ class bitmap_8bpp_negativecolorsused(bitmap_8bpp) :
     This attempts to trick the bitmap processor into accessing invalid memory.
     """
     def get_colors_used(self) :
-        return -1000
+        return 4294966296
 
 class bitmap_8bpp_twocolorsimportant(bitmap_8bpp) :
     """
@@ -956,7 +956,7 @@ class bitmap_8bpp_largecolorsimportant(bitmap_8bpp) :
     This is invalid--biColorsImportant shouldn't exceed biColorsUsed.
     """
     def get_colors_important(self) :
-        return sys.maxint
+        return 2**31-1
 
 class bitmap_8bpp_negativecolorsimportant(bitmap_8bpp) :
     """
@@ -964,7 +964,7 @@ class bitmap_8bpp_negativecolorsimportant(bitmap_8bpp) :
     This is invalid--biColorsImportant can't be below 0.
     """
     def get_colors_used(self) :
-        return -1000
+        return 4294966296
 
 class bitmap_8bpp_croppedpixeldata(bitmap_8bpp) :
     """
@@ -2552,7 +2552,7 @@ class bitmap_emptyfile(bitmap_1bpp) :
         
         bmpfile = file(filename, 'wb')
         bmpfile.close()
-	
+
 class bitmap_directory(bitmap_1bpp) :
     """
     A directory that has a '.bmp' extension.
@@ -2637,7 +2637,7 @@ class bitmap_negativeoffbits(bitmap_1bpp) :
     """
 
     def get_offset_of_bitmap_data(self) :
-        return -1
+        return 2**32 - 1
 
 class bitmap_largeoffbits(bitmap_1bpp) :
     """
@@ -2837,7 +2837,7 @@ class bitmap_largebitdepth(bitmap_1bpp) :
     """
 
     def get_bits_per_pixel(self) :
-        return 0xFFFF
+        return -1
 
 class bitmap_unknowncompression(bitmap_1bpp) :
     """
@@ -2845,7 +2845,7 @@ class bitmap_unknowncompression(bitmap_1bpp) :
     """
 
     def get_compression(self) :
-        return sys.maxint
+        return 2**31-1
 
 class bitmap_4bpp_rle8compression(bitmap_rle4_encoded) :
     """
@@ -2897,7 +2897,7 @@ class bitmap_8bpp_largexpelspermeter(bitmap_8bpp) :
 
     def get_pixels_per_meter_x(self) :
         "Return the biXPelsPerMeter to put into the BITMAPINFOHEADER"
-        return sys.maxint
+        return 2**31-1
 
 
 class bitmap_8bpp_zeroypelspermeter(bitmap_8bpp) :
@@ -2931,7 +2931,7 @@ class bitmap_8bpp_largeypelspermeter(bitmap_8bpp) :
 
     def get_pixels_per_meter_y(self) :
         "Return the biYPelsPerMeter to put into the BITMAPINFOHEADER"
-        return sys.maxint
+        return 2**31-1
 
 
 
